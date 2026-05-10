@@ -1,4 +1,5 @@
 import fs from 'fs';
+import path from 'path';
 import { createClient } from '@supabase/supabase-js';
 import dotenv from 'dotenv';
 dotenv.config({ path: '.env.local' });
@@ -96,7 +97,7 @@ async function reingestTable(filePath: string, tableName: string, conflictKey: s
 }
 
 async function run() {
-  const CSV_DIR = 'c:/Users/User/.gemini/antigravity/scratch/BeautyProcure/Arquivos CSV';
+  const CSV_DIR = path.join(process.cwd(), 'Arquivos CSV');
 
   const tasks = [
     { 

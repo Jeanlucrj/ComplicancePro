@@ -1,4 +1,5 @@
 import fs from 'fs';
+import path from 'path';
 import { createClient } from '@supabase/supabase-js';
 import dotenv from 'dotenv';
 dotenv.config({ path: '.env.local' });
@@ -80,7 +81,7 @@ async function run() {
   if (delErr) { console.error('Erro ao deletar:', delErr.message); process.exit(1); }
   console.log('Deletado com sucesso.\n');
 
-  const filePath = 'c:/Users/User/.gemini/antigravity/scratch/BeautyProcure/Arquivos CSV/TA_CONSULTA_PRODUTOS_IRREGULARES_RESULTADO.CSV';
+  const filePath = path.join(process.cwd(), 'Arquivos CSV', 'TA_CONSULTA_PRODUTOS_IRREGULARES_RESULTADO.CSV');
   console.log('Lendo arquivo CSV completo em memória...');
   const content = fs.readFileSync(filePath, { encoding: 'latin1' });
   console.log(`Arquivo lido: ${(content.length / 1024 / 1024).toFixed(1)} MB`);

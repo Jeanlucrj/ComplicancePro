@@ -1,4 +1,5 @@
 import fs from 'fs';
+import path from 'path';
 import { createClient } from '@supabase/supabase-js';
 import dotenv from 'dotenv';
 dotenv.config({ path: '.env.local' });
@@ -83,7 +84,7 @@ function readLastLines(filePath: string, targetLines: number): string {
 }
 
 async function run() {
-  const filePath = 'c:/Users/User/.gemini/antigravity/scratch/BeautyProcure/Arquivos CSV/TA_CONSULTA_SITUACAO_DOCUMENTO_TECNICO.CSV';
+  const filePath = path.join(process.cwd(), 'Arquivos CSV', 'TA_CONSULTA_SITUACAO_DOCUMENTO_TECNICO.CSV');
   console.log('Lendo últimas 10.000 linhas do arquivo 5GB...');
   const raw = readLastLines(filePath, 10000);
   const rows = parseCSVContent(raw, HEADERS);

@@ -1,0 +1,45 @@
+name: ANVISA Data Sync
+
+on:
+  schedule:
+    - cron: '0 6 * * 5'  # Toda sexta-feira às 06h UTC (03h Brasília)
+  workflow_dispatch:       # Permite rodar manualmente pelo painel do GitHub
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    timeout-minutes: 360  # 6 horas (CSVs são grandes)
+
+    steps:
+      - name: Checkout código
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Instalar dependências
+        run: npm ci
+
+      - name: Baixar CSVs da ANVISA
+        run: npx tsx scripts/download-anvisa-csvs.ts
+
+      - name: Importar dados para o Supabase
+        run: npm run import:anvisa
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+
+      - name: Sincronizar irregulares
+        run: npx tsx scripts/sync-anvisa.ts --type=irregulares
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+
+      - name: Sincronizar AFE
+        run: npx tsx scripts/sync-anvisa.ts --type=afe
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}

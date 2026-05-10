@@ -1,10 +1,11 @@
 import fs from 'fs';
+import path from 'path';
 import { createClient } from '@supabase/supabase-js';
 import dotenv from 'dotenv';
 dotenv.config({ path: '.env.local' });
 
 const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!);
-const CSV_DIR = 'c:/Users/User/.gemini/antigravity/scratch/BeautyProcure/Arquivos CSV';
+const CSV_DIR = path.join(process.cwd(), 'Arquivos CSV');
 
 // ─── Parser léxico (tolerante a \n dentro de aspas) ──────────────────────────
 function parseCSVContent(content: string, headers?: string[]): Array<Record<string, string>> {
