@@ -95,11 +95,39 @@ async function upsertBatch(table: string, rows: any[], conflictKey: string): Pro
   return { ok: 0, err: rows.length };
 }
 
+async function getTableColumns(table: string): Promise<Set<string>> {
+  try {
+    const { data } = await supabase.from(table as any).select().limit(1);
+    if (data && data.length > 0) return new Set(Object.keys(data[0]));
+  } catch {}
+  return new Set<string>();
+}
+
+function filterRowColumns(rows: any[], allowedCols: Set<string>): any[] {
+  if (allowedCols.size === 0) return rows;
+  return rows.map(row => {
+    const filtered: any = {};
+    for (const key of Object.keys(row)) {
+      if (allowedCols.has(key)) filtered[key] = row[key];
+    }
+    return filtered;
+  });
+}
+
 async function ingestFull(label: string, filePath: string, table: string, conflictKey: string | null, headers?: string[]) {
   console.log(`\n🔄 ${label}`);
   const content = fs.readFileSync(filePath, { encoding: 'latin1' });
   const rows = parseCSVContent(content, headers);
   console.log(`   Parsados: ${rows.length} registros`);
+
+  // Busca colunas existentes no banco e filtra as que não existem
+  const allowedCols = await getTableColumns(table);
+  const filteredRows = filterRowColumns(rows, allowedCols);
+  if (allowedCols.size > 0) {
+    const csvCols = new Set(Object.keys(rows[0] || {}));
+    const skipped = [...csvCols].filter(c => !allowedCols.has(c));
+    if (skipped.length) console.log(`   ⚠️  Colunas ignoradas (não existem no banco): ${skipped.join(', ')}`);
+  }
 
   // Se não tem chave única: truncate + insert simples
   if (!conflictKey) {
@@ -109,12 +137,12 @@ async function ingestFull(label: string, filePath: string, table: string, confli
 
   const BATCH = 300;
   let ok = 0, err = 0;
-  for (let i = 0; i < rows.length; i += BATCH) {
+  for (let i = 0; i < filteredRows.length; i += BATCH) {
     let r: {ok: number, err: number};
     if (conflictKey) {
-      r = await upsertBatch(table, rows.slice(i, i + BATCH), conflictKey);
+      r = await upsertBatch(table, filteredRows.slice(i, i + BATCH), conflictKey);
     } else {
-      r = await insertBatch(table, rows.slice(i, i + BATCH));
+      r = await insertBatch(table, filteredRows.slice(i, i + BATCH));
     }
     ok += r.ok; err += r.err;
     process.stdout.write(`\r   Upserted: ${ok} | Erros: ${err}`);
