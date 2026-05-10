@@ -218,64 +218,21 @@ async function sync(tipo: Tipo, fileOverride?: string) {
   }
   const csvRows = [...csvMapDedup.values()];
 
-  // Busca TODOS os registros do banco de uma vez (paginado, colunas completas)
-  console.log('Buscando registros existentes no Supabase...');
-  const dbRows = await buscarTodosDoDb(cfg.table, '*');
-  console.log(`  ${dbRows.length} registros no banco`);
-
-  // Mapa: chave única → registro completo do banco
-  const dbMap = new Map<string, Record<string, unknown>>();
-  for (const row of dbRows) {
-    const k = getKey(row);
-    if (k) dbMap.set(k, row);
-  }
-
-  const novos: Record<string, unknown>[] = [];
-  const aAtualizar: Array<{ id: string; dados: Record<string, unknown> }> = [];
-  let semMudanca = 0;
-
-  for (const row of csvRows) {
-    const k = getKey(row);
-    if (!k) continue;
-    const dbRow = dbMap.get(k);
-    if (!dbRow) {
-      novos.push(row);
-    } else if (rowsMudou(dbRow, row)) {
-      aAtualizar.push({ id: String(dbRow['id']), dados: row });
+  // Upsert direto em lotes (sem pré-busca — mais rápido e sem erro de schema cache)
+  console.log(`\nFazendo upsert de ${csvRows.length} registros em lotes de ${INSERT_BATCH}...`);
+  let count = 0, erros = 0;
+  for (let i = 0; i < csvRows.length; i += INSERT_BATCH) {
+    const lote = csvRows.slice(i, i + INSERT_BATCH);
+    const { error } = await sb.from(cfg.table).upsert(lote as any, { onConflict: uKey });
+    if (error) {
+      erros++;
+      console.error(`\n  ✗ Erro lote ${i}-${i + lote.length}: ${error.message}`);
     } else {
-      semMudanca++;
+      count += lote.length;
     }
+    process.stdout.write(`\r  OK: ${count} | Erros: ${erros * INSERT_BATCH}`);
   }
-
-  console.log(`\n  Novos:        ${novos.length}`);
-  console.log(`  Atualizados:  ${aAtualizar.length}`);
-  console.log(`  Sem mudança:  ${semMudanca}`);
-
-  if (novos.length > 0) {
-    console.log('\nInserindo novos...');
-    let count = 0;
-    for (let i = 0; i < novos.length; i += INSERT_BATCH) {
-      const { error } = await sb.from(cfg.table).insert(novos.slice(i, i + INSERT_BATCH));
-      if (error) throw new Error(`Insert: ${error.message}`);
-      count += Math.min(INSERT_BATCH, novos.length - i);
-      process.stdout.write(`\r  ${count}/${novos.length}`);
-    }
-    console.log(`\r  ${novos.length} novos inseridos.   `);
-  }
-
-  if (aAtualizar.length > 0) {
-    console.log('\nAtualizando registros alterados...');
-    let count = 0;
-    await emLotes(aAtualizar, async ({ id, dados }) => {
-      const { error } = await sb.from(cfg.table).update(dados).eq('id', id);
-      if (error) throw new Error(`Update: ${error.message}`);
-      count++;
-      if (count % 100 === 0) process.stdout.write(`\r  ${count}/${aAtualizar.length}`);
-    }, UPDATE_CONCURRENCY);
-    console.log(`\r  ${aAtualizar.length} registros atualizados.   `);
-  }
-
-  console.log(`\nSync ${tipo} concluído!`);
+  console.log(`\nSync ${tipo} concluído! ${count} registros, ${erros} lotes com erro.`);
 }
 
 // ─── Entrypoint ───────────────────────────────────────────────────────────────
