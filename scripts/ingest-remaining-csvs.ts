@@ -189,7 +189,7 @@ async function run() {
       label: 'Empresas Nacionais',
       file: `${CSV_DIR}/TA_CONSULTA_FUNCIONAMENTO_EMPRESA_NACIONAL.CSV`,
       table: 'anvisa_funcionamento_nacional',
-      conflict: 'nu_autorizacao_novo',
+      conflict: null,
       full: true,
     },
     {
