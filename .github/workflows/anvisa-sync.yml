@@ -45,8 +45,17 @@ jobs:
       - name: Baixar CSVs da ANVISA
         run: npx tsx scripts/download-anvisa-csvs.ts
 
-      - name: Importar dados para o Supabase
-        run: npm run import:anvisa
+      - name: Sincronizar cosméticos (com mapeamento de colunas)
+        run: npx tsx scripts/sync-anvisa.ts --type=cosmetico
+
+      - name: Sincronizar medicamentos (com mapeamento de colunas)
+        run: npx tsx scripts/sync-anvisa.ts --type=medicamento
+
+      - name: Importar demais tabelas ANVISA
+        run: npx tsx scripts/ingest-remaining-csvs.ts
+
+      - name: Importar situação documentos técnicos
+        run: npx tsx scripts/ingest-situacao-doc.ts
 
       - name: Sincronizar irregulares
         run: npx tsx scripts/sync-anvisa.ts --type=irregulares

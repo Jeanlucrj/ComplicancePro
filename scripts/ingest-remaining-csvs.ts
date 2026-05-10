@@ -186,20 +186,6 @@ async function run() {
 
   const tasks = [
     {
-      label: 'Catálogo de Cosméticos',
-      file: `${CSV_DIR}/DADOS_ABERTOS_COSMETICO.csv`,
-      table: 'anvisa_cosmeticos',
-      conflict: 'nu_registro_produto',
-      full: true,
-    },
-    {
-      label: 'Catálogo de Medicamentos',
-      file: `${CSV_DIR}/DADOS_ABERTOS_MEDICAMENTOS.csv`,
-      table: 'anvisa_medicamentos',
-      conflict: 'nu_registro_produto',
-      full: true,
-    },
-    {
       label: 'Produtos Irregulares',
       file: `${CSV_DIR}/TA_CONSULTA_PRODUTOS_IRREGULARES_RESULTADO.CSV`,
       table: 'anvisa_produtos_irregulares',
