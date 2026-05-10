@@ -19,9 +19,9 @@ const fs = require('fs');
 const { StringDecoder } = require('string_decoder');
 
 const DB = {
-  host: 'db.agcdyfnxwxlwwakvusov.supabase.co',
+  host: process.env.SUPABASE_DB_HOST,
   port: 5432, database: 'postgres', user: 'postgres',
-  password: 'Mf@06296009', ssl: { rejectUnauthorized: false },
+  password: process.env.SUPABASE_DB_PASSWORD, ssl: { rejectUnauthorized: false },
 };
 
 // Parse args

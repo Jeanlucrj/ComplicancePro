@@ -16,11 +16,11 @@ const { StringDecoder } = require('string_decoder');
 const CSV_URL = 'https://dados.anvisa.gov.br/dados/CONSULTAS/DOCUMENTOS/TA_CONSULTA_SITUACAO_DOCUMENTO_TECNICO.CSV';
 
 const DB = {
-  host: 'db.agcdyfnxwxlwwakvusov.supabase.co',
+  host: process.env.SUPABASE_DB_HOST,
   port: 5432,
   database: 'postgres',
   user: 'postgres',
-  password: 'Mf@06296009',
+  password: process.env.SUPABASE_DB_PASSWORD,
   ssl: { rejectUnauthorized: false },
 };
 

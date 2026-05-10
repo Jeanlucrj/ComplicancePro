@@ -17,11 +17,11 @@ const { randomUUID } = require('crypto');
 const CSV_PATH = path.join(process.cwd(), 'Arquivos CSV', 'TA_CONSULTA_PARECER_AVAL_MEDICAMENTOS.CSV');
 
 const DB = {
-  host: 'db.agcdyfnxwxlwwakvusov.supabase.co',
+  host: process.env.SUPABASE_DB_HOST,
   port: 5432,
   database: 'postgres',
   user: 'postgres',
-  password: 'Mf@06296009',
+  password: process.env.SUPABASE_DB_PASSWORD,
   ssl: { rejectUnauthorized: false },
 };
 
