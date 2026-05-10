@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>BeautyProcure — Sync ANVISA Isentos</title>
+  <style>
+    body { font-family: system-ui, sans-serif; max-width: 700px; margin: 40px auto; padding: 0 20px; background: #0f172a; color: #e2e8f0; }
+    h1 { color: #818cf8; font-size: 1.3rem; margin-bottom: 4px; }
+    p { color: #94a3b8; font-size: 0.9rem; margin-top: 0; }
+    label { display: block; margin-bottom: 6px; font-size: 0.85rem; color: #94a3b8; }
+    input { width: 100%; padding: 10px 14px; border-radius: 8px; border: 1px solid #334155; background: #1e293b; color: #f1f5f9; font-size: 1rem; box-sizing: border-box; margin-bottom: 12px; }
+    button { padding: 10px 24px; background: #6366f1; color: white; border: none; border-radius: 8px; font-size: 0.95rem; cursor: pointer; font-weight: 600; }
+    button:disabled { opacity: 0.5; cursor: not-allowed; }
+    #log { margin-top: 20px; background: #1e293b; border-radius: 8px; padding: 16px; font-family: monospace; font-size: 0.8rem; max-height: 400px; overflow-y: auto; border: 1px solid #334155; }
+    .ok { color: #4ade80; } .err { color: #f87171; } .info { color: #60a5fa; } .warn { color: #fbbf24; }
+  </style>
+</head>
+<body>
+  <h1>🔄 BeautyProcure — Sync ANVISA Isentos</h1>
+  <p>Esta página usa o seu browser (Chrome/Edge) para buscar produtos "Isentos de Registro" na ANVISA e salvá-los no seu banco de dados via API local.</p>
+
+  <label>CNPJ (somente números)</label>
+  <input type="text" id="cnpj" value="29077171000109" placeholder="ex: 29077171000109" maxlength="14">
+
+  <label>URL da sua API local (mude a porta se necessário)</label>
+  <input type="text" id="apiUrl" value="http://localhost:3000/api/anvisa/sync-cnpj">
+
+  <button id="btn" onclick="iniciarSync()">Iniciar Sincronização</button>
+
+  <div id="log"></div>
+
+  <script>
+    function log(msg, cls = 'info') {
+      const d = document.getElementById('log');
+      d.innerHTML += `<div class="${cls}">${new Date().toLocaleTimeString('pt-BR')} — ${msg}</div>`;
+      d.scrollTop = d.scrollHeight;
+    }
+
+    async function iniciarSync() {
+      const cnpj = document.getElementById('cnpj').value.replace(/\D/g, '');
+      const apiUrl = document.getElementById('apiUrl').value.trim();
+      const btn = document.getElementById('btn');
+
+      if (cnpj.length !== 14) { log('❌ CNPJ deve ter 14 dígitos.', 'err'); return; }
+
+      btn.disabled = true;
+      document.getElementById('log').innerHTML = '';
+      log(`Iniciando sync para CNPJ ${cnpj}...`);
+
+      const todos = [];
+      let page = 0;
+      const pageSize = 100;
+      let totalPages = 1;
+
+      try {
+        // Busca diretamente na ANVISA (browser passa no Cloudflare sem bloqueio)
+        while (page < totalPages) {
+          const url = `https://consultas.anvisa.gov.br/api/consulta/cosmeticos/regularizados?count=${pageSize}&offset=${page * pageSize}&filter%5Bcnpj%5D=${cnpj}`;
+          log(`📄 Buscando página ${page + 1}/${totalPages}...`);
+
+          const res = await fetch(url, {
+            headers: {
+              'Authorization': 'Guest',
+              'Accept': 'application/json, text/plain, */*',
+              'Accept-Language': 'pt-BR,pt;q=0.9',
+            }
+          });
+
+          if (!res.ok) { log(`❌ ANVISA retornou HTTP ${res.status}`, 'err'); break; }
+
+          const data = await res.json();
+          const content = data.content || [];
+          todos.push(...content);
+          totalPages = data.totalPages || 1;
+
+          log(`  ✅ ${todos.length}/${data.totalElements} produtos recebidos`, 'ok');
+          page++;
+
+          if (content.length === 0 || page >= totalPages) break;
+          await new Promise(r => setTimeout(r, 300));
+        }
+
+        log(`\n📦 Total: ${todos.length} produto(s). Enviando para API local...`);
+
+        // Salva via API local do Next.js
+        const saveRes = await fetch(apiUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ cnpj, produtos: todos })
+        });
+
+        if (!saveRes.ok) {
+          const err = await saveRes.text();
+          log(`❌ Erro na API local: ${err}`, 'err');
+        } else {
+          const result = await saveRes.json();
+          log(`🎉 ${result.salvos} produto(s) salvos no Appwrite!`, 'ok');
+          log(`Feito! Recarregue a página do fornecedor no BeautyProcure.`, 'ok');
+        }
+
+      } catch (e) {
+        log(`❌ Erro: ${e.message}`, 'err');
+      } finally {
+        btn.disabled = false;
+      }
+    }
+  </script>
+</body>
+</html>

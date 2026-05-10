@@ -1,0 +1,81 @@
+[29/03/2026  1:14:46,76] Iniciando Sincronizacao Diaria... 
+  % Total    % Received % Xferd  Average Speed  Time    Time    Time   Current
+                                 Dload  Upload  Total   Spent   Left   Speed
+  0      0   0      0   0      0      0      0                              0  4  7.91M   4 350.4k   0      0 338.9k      0   00:23   00:01   00:22 348.3k 10  7.91M  10 829.5k   0      0 404.6k      0   00:20   00:02   00:18 410.2k 14  7.91M  14  1.14M   0      0 385.1k      0   00:21   00:03   00:18 388.6k 19  7.91M  19  1.50M   0      0 379.3k      0   00:21   00:04   00:17 381.9k 23  7.91M  23  1.84M   0      0 371.2k      0   00:21   00:05   00:16 373.3k 28  7.91M  28  2.25M   0      0 379.2k      0   00:21   00:06   00:15 387.5k 33  7.91M  33  2.67M   0      0 385.8k      0   00:20   00:07   00:13 378.2k 40  7.91M  40  3.17M   0      0 400.7k      0   00:20   00:08   00:12 410.1k 47  7.91M  47  3.73M   0      0 419.3k      0   00:19   00:09   00:10 451.4k 50  7.91M  50  4.02M   0      0 407.0k      0   00:19   00:10   00:09 443.0k 55  7.91M  55  4.35M   0      0 400.6k      0   00:20   00:11   00:09 426.5k 59  7.91M  59  4.73M   0      0 399.6k      0   00:20   00:12   00:08 419.2k 64  7.91M  64  5.14M   0      0 400.7k      0   00:20   00:13   00:07 400.9k 71  7.91M  71  5.63M   0      0 407.7k      0   00:19   00:14   00:05 386.7k 76  7.91M  76  6.06M   0      0 410.0k      0   00:19   00:15   00:04 416.0k 81  7.91M  81  6.47M   0      0 410.2k      0   00:19   00:16   00:03 431.6k 86  7.91M  86  6.85M   0      0 408.9k      0   00:19   00:17   00:02 431.5k 91  7.91M  91  7.26M   0      0 409.1k      0   00:19   00:18   00:01 430.9k 96  7.91M  96  7.66M   0      0 409.0k      0   00:19   00:19         412.7k100  7.91M 100  7.91M   0      0 413.0k      0   00:19   00:19         412.7k100  7.91M 100  7.91M   0      0 413.0k      0   00:19   00:19         412.7k100  7.91M 100  7.91M   0      0 412.9k      0   00:19   00:19         412.7k
+[dotenv@17.3.1] injecting env (5) from .env.local -- tip: ⚙️  suppress all logs with { quiet: true }
+🚀 Iniciando sincronização de cosmetico...
+📊 Processando CSV: tmp\cosmeticos.csv
+✅ [anvisa_cosmeticos] Inserção confirmada: ID 69c8a75300335c0de9ca
+✅ [anvisa_cosmeticos] Inserção confirmada: ID 69c8a75300330e4196bd
+✅ [anvisa_cosmeticos] Inserção confirmada: ID 69c8a754003c9ef40873
+✅ [anvisa_cosmeticos] Inserção confirmada: ID 69c8a754003c5a60d6cb
+✅ [anvisa_cosmeticos] Inserção confirmada: ID 69c8a7550033b3168ed4
+✅ [anvisa_cosmeticos] Inserção confirmada: ID 69c8a7550033d4545c83
+✅ [anvisa_cosmeticos] Inserção confirmada: ID 69c8a756002cec5931dc
+✅ [anvisa_cosmeticos] Inserção confirmada: ID 69c8a756002c02bb3262
+✅ [anvisa_cosmeticos] Inserção confirmada: ID 69c8a75700220eb3d855
+✅ [anvisa_cosmeticos] Inserção confirmada: ID 69c8a757002294211309
+✅ [anvisa_cosmeticos] Inserção confirmada: ID 69c8a75800195cd90b4e
+✅ [anvisa_cosmeticos] Inserção confirmada: ID 69c8a75800173df8c629
+✅ [anvisa_cosmeticos] Inserção confirmada: ID 69c8a759000c619a5b5c
+✅ [anvisa_cosmeticos] Inserção confirmada: ID 69c8a759000cdd2a7e8c
+✅ [anvisa_cosmeticos] Inserção confirmada: ID 69c8a75a00031a0f64c1
+✅ [anvisa_cosmeticos] Inserção confirmada: ID 69c8a75a0001f9b38cb1
+✅ [anvisa_cosmeticos] Inserção confirmada: ID 69c8a75a003593ba87f1
+✅ [anvisa_cosmeticos] Inserção confirmada: ID 69c8a75a0036e4a9ee93
+✅ [anvisa_cosmeticos] Inserção confirmada: ID 69c8a75b002cbac718d3
+✅ [anvisa_cosmeticos] Inserção confirmada: ID 69c8a75b002cb5581fbc
+✅ [anvisa_cosmeticos] Inserção confirmada: ID 69c8a75c00226e9f2251
+✅ [anvisa_cosmeticos] Inserção confirmada: ID 69c8a75c0021a3f612e1
+✅ [anvisa_cosmeticos] Inserção confirmada: ID 69c8a75d0018e37747ed
+✅ [anvisa_cosmeticos] Inserção confirmada: ID 69c8a75d001989af14b6
+✅ [anvisa_cosmeticos] Inserção confirmada: ID 69c8a75e00112a4cb4c5
+✅ [anvisa_cosmeticos] Inserção confirmada: ID 69c8a75e0010c909b192
+✅ [anvisa_cosmeticos] Inserção confirmada: ID 69c8a75e003b4147b40d
+✅ [anvisa_cosmeticos] Inserção confirmada: ID 69c8a75e003a8d5fa94b
+✅ [anvisa_cosmeticos] Inserção confirmada: ID 69c8a75f0033cc339a46
+✅ [anvisa_cosmeticos] Inserção confirmada: ID 69c8a75f00351f3a5a75
+✅ [anvisa_cosmeticos] Inserção confirmada: ID 69c8a760002b57a9de7f
+✅ [anvisa_cosmeticos] Inserção confirmada: ID 69c8a7600029e6d2bf93
+✅ [anvisa_cosmeticos] Inserção confirmada: ID 69c8a7610013cf479f7b
+✅ [anvisa_cosmeticos] Inserção confirmada: ID 69c8a761001500ceab81
+✅ [anvisa_cosmeticos] Inserção confirmada: ID 69c8a762000b99d4d134
+✅ [anvisa_cosmeticos] Inserção confirmada: ID 69c8a762000b2dc02e3c
+✅ [anvisa_cosmeticos] Inserção confirmada: ID 69c8a7630002aba8afcd
+✅ [anvisa_cosmeticos] Inserção confirmada: ID 69c8a763000205f274f9
+✅ [anvisa_cosmeticos] Inserção confirmada: ID 69c8a76300363fa4b53a
+✅ [anvisa_cosmeticos] Inserção confirmada: ID 69c8a76300361b0e1f41
+✅ [anvisa_cosmeticos] Inserção confirmada: ID 69c8a764002c82a4a071
+✅ [anvisa_cosmeticos] Inserção confirmada: ID 69c8a764002c7fbea180
+✅ [anvisa_cosmeticos] Inserção confirmada: ID 69c8a7650022792d41d0
+✅ [anvisa_cosmeticos] Inserção confirmada: ID 69c8a7650022cbeee127
+✅ [anvisa_cosmeticos] Inserção confirmada: ID 69c8a7660019217ae6a7
+✅ [anvisa_cosmeticos] Inserção confirmada: ID 69c8a76600199bb685b0
+✅ [anvisa_cosmeticos] Inserção confirmada: ID 69c8a767000facf673ea
+✅ [anvisa_cosmeticos] Inserção confirmada: ID 69c8a767000ff4040f20
+✅ [anvisa_cosmeticos] Inserção confirmada: ID 69c8a7680005815672d5
+✅ [anvisa_cosmeticos] Inserção confirmada: ID 69c8a7680004e2632501
+✅ [anvisa_cosmeticos] Inserção confirmada: ID 69c8a76800399d45baae
+✅ [anvisa_cosmeticos] Inserção confirmada: ID 69c8a7680038ef2af405
+✅ [anvisa_cosmeticos] Inserção confirmada: ID 69c8a769003181d0796c
+✅ [anvisa_cosmeticos] Inserção confirmada: ID 69c8a76900312a1623ba
+✅ [anvisa_cosmeticos] Inserção confirmada: ID 69c8a76a002944198d59
+✅ [anvisa_cosmeticos] Inserção confirmada: ID 69c8a76a0029ad5eb3c1
+✅ [anvisa_cosmeticos] Inserção confirmada: ID 69c8a76b001c74ef92cf
+✅ [anvisa_cosmeticos] Inserção confirmada: ID 69c8a76b001c253a5322
+✅ [anvisa_cosmeticos] Inserção confirmada: ID 69c8a76c00126a327228
+✅ [anvisa_cosmeticos] Inserção confirmada: ID 69c8a76c00125a99429a
+✅ [anvisa_cosmeticos] Inserção confirmada: ID 69c8a76d00073d693fe5
+✅ [anvisa_cosmeticos] Inserção confirmada: ID 69c8a76d000641e28434
+✅ [anvisa_cosmeticos] Inserção confirmada: ID 69c8a76d003c06c5d397
+✅ [anvisa_cosmeticos] Inserção confirmada: ID 69c8a76d003b82a762e1
+✅ [anvisa_cosmeticos] Inserção confirmada: ID 69c8a76e002419c0489d
+✅ [anvisa_cosmeticos] Inserção confirmada: ID 69c8a76e0024c7da66c7
+✅ [anvisa_cosmeticos] Inserção confirmada: ID 69c8a76f0019524b18aa
+✅ [anvisa_cosmeticos] Inserção confirmada: ID 69c8a76f00193991229b
+✅ [anvisa_cosmeticos] Inserção confirmada: ID 69c8a770001e5c5708da
+✅ [anvisa_cosmeticos] Inserção confirmada: ID 69c8a770001e623aeb64
+✅ [anvisa_cosmeticos] Inserção confirmada: ID 69c8a77100071de17732
+^C^C[02/05/2026  3:00:07,53] Iniciando Sincronizacao Diaria... 
+[02/05/2026  3:00:07,55] Atualizando CSVs locais... 
+^C
