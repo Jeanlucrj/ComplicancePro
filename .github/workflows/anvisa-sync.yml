@@ -5,10 +5,16 @@ on:
     - cron: '0 6 * * 5'  # Toda sexta-feira às 06h UTC (03h Brasília)
   workflow_dispatch:       # Permite rodar manualmente pelo painel do GitHub
 
+env:
+  NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+  SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+  SUPABASE_DB_HOST: ${{ secrets.SUPABASE_DB_HOST }}
+  SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
+
 jobs:
   sync:
     runs-on: ubuntu-latest
-    timeout-minutes: 360  # 6 horas (CSVs são grandes)
+    timeout-minutes: 360
 
     steps:
       - name: Checkout código
@@ -23,36 +29,27 @@ jobs:
       - name: Instalar dependências
         run: npm ci
 
-      - name: Criar .env.local com as credenciais
+      - name: Verificar credenciais
         run: |
-          echo "NEXT_PUBLIC_SUPABASE_URL=${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}" >> .env.local
-          echo "SUPABASE_SERVICE_ROLE_KEY=${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}" >> .env.local
-          echo "SUPABASE_DB_HOST=${{ secrets.SUPABASE_DB_HOST }}" >> .env.local
-          echo "SUPABASE_DB_PASSWORD=${{ secrets.SUPABASE_DB_PASSWORD }}" >> .env.local
+          echo "URL set: $([ -n "$NEXT_PUBLIC_SUPABASE_URL" ] && echo 'SIM' || echo 'NAO')"
+          echo "KEY set: $([ -n "$SUPABASE_SERVICE_ROLE_KEY" ] && echo 'SIM' || echo 'NAO')"
+          echo "KEY primeiros 20 chars: ${SUPABASE_SERVICE_ROLE_KEY:0:20}"
+
+      - name: Criar .env.local
+        run: |
+          printf 'NEXT_PUBLIC_SUPABASE_URL=%s\n' "$NEXT_PUBLIC_SUPABASE_URL" >> .env.local
+          printf 'SUPABASE_SERVICE_ROLE_KEY=%s\n' "$SUPABASE_SERVICE_ROLE_KEY" >> .env.local
+          printf 'SUPABASE_DB_HOST=%s\n' "$SUPABASE_DB_HOST" >> .env.local
+          printf 'SUPABASE_DB_PASSWORD=%s\n' "$SUPABASE_DB_PASSWORD" >> .env.local
 
       - name: Baixar CSVs da ANVISA
         run: npx tsx scripts/download-anvisa-csvs.ts
 
       - name: Importar dados para o Supabase
         run: npm run import:anvisa
-        env:
-          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
-          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
-          SUPABASE_DB_HOST: ${{ secrets.SUPABASE_DB_HOST }}
-          SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
 
       - name: Sincronizar irregulares
         run: npx tsx scripts/sync-anvisa.ts --type=irregulares
-        env:
-          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
-          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
-          SUPABASE_DB_HOST: ${{ secrets.SUPABASE_DB_HOST }}
-          SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
 
       - name: Sincronizar AFE
         run: npx tsx scripts/sync-anvisa.ts --type=afe
-        env:
-          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
-          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
-          SUPABASE_DB_HOST: ${{ secrets.SUPABASE_DB_HOST }}
-          SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
