@@ -175,7 +175,7 @@ async function run() {
       label: 'Produtos Irregulares',
       file: `${CSV_DIR}/TA_CONSULTA_PRODUTOS_IRREGULARES_RESULTADO.CSV`,
       table: 'anvisa_produtos_irregulares',
-      conflict: 'co_seq_dossie_investig_med',
+      conflict: null,
       full: true,
     },
     {
