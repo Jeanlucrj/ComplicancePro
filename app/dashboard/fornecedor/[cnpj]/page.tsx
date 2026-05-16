@@ -178,7 +178,7 @@ export default function FornecedorPage() {
         try {
           const rpDb = await fetch(
             `/api/anvisa/scrap-on-demand?cnpj=${cnpj}`,
-            { signal: AbortSignal.timeout(35000) }
+            { signal: AbortSignal.timeout(55000) }
           );
           const dataDb = await rpDb.json();
           if (dataDb.success && dataDb.anvisa_produtos?.length > 0) {
@@ -301,12 +301,12 @@ export default function FornecedorPage() {
   const abrirSincronizacao = () => {
     setEnrichmentData(null);
     setIsSyncModalOpen(true);
-    // Usa tipo já carregado no estado (sem fetch extra do perfil)
     const tipoUsuario: 'cosmetico' | 'medicamento' | 'ambos' = (userTipoAnvisa && userTipoAnvisa !== 'ambos')
       ? userTipoAnvisa
       : (tipoAnvisaSync || 'ambos');
     const locked = tipoUsuario === 'cosmetico' || tipoUsuario === 'medicamento';
-    verificarDadosGov(false, tipoUsuario, false, locked);
+    // force=true garante que o scrap-on-demand é chamado mesmo se enrichmentData já estiver populado
+    verificarDadosGov(false, tipoUsuario, true, locked);
   };
 
   const confirmarImportacao = async () => {
