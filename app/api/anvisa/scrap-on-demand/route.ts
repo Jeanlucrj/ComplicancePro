@@ -51,31 +51,33 @@ export async function GET(request: NextRequest) {
     });
     const authorization = authHeaderRaw === 'Guest' ? 'Guest' : `Bearer ${authHeaderRaw}`;
 
-    // 3. URLs das APIs ANVISA — tenta CNPJ completo e CNPJ raiz (8 dígitos) para regularizados
+    // 3. URLs das APIs ANVISA — tenta múltiplos formatos de parâmetro para regularizados
     const cnpjRaiz = cnpjLimpo.substring(0, 8);
-    const apiUrlRegularizados     = `https://consultas.anvisa.gov.br/api/consulta/cosmeticos/regularizados?count=1000&offset=0&filter%5Bcnpj%5D=${cnpjLimpo}`;
-    const apiUrlRegularizadosRaiz = `https://consultas.anvisa.gov.br/api/consulta/cosmeticos/regularizados?count=1000&offset=0&filter%5Bcnpj%5D=${cnpjRaiz}`;
-    const apiUrlRegistrados       = `https://consultas.anvisa.gov.br/api/consulta/cosmeticos/registrados?count=1000&offset=0&filter%5Bcnpj%5D=${cnpjLimpo}`;
-    const apiUrlRegistradosRaiz   = `https://consultas.anvisa.gov.br/api/consulta/cosmeticos/registrados?count=1000&offset=0&filter%5Bcnpj%5D=${cnpjRaiz}`;
+    const base = 'https://consultas.anvisa.gov.br/api/consulta/cosmeticos';
+    const urlsRegularizados = [
+      `${base}/regularizados?count=500&offset=0&filter%5Bcnpj%5D=${cnpjLimpo}`,
+      `${base}/regularizados?count=500&offset=0&filter%5BcnpjEmpresa%5D=${cnpjLimpo}`,
+      `${base}/regularizados?count=500&offset=0&filter%5Bempresa.cnpj%5D=${cnpjLimpo}`,
+      `${base}/regularizados?count=500&offset=0&filter%5Bcnpj%5D=${cnpjRaiz}`,
+    ];
+    const urlsRegistrados = [
+      `${base}/registrados?count=500&offset=0&filter%5Bcnpj%5D=${cnpjLimpo}`,
+      `${base}/registrados?count=500&offset=0&filter%5Bcnpj%5D=${cnpjRaiz}`,
+    ];
 
     // 4. Requisições REST da ANVISA dentro do browser (bypassa CORS/WAF)
-    const evalArgs = [apiUrlRegularizados, apiUrlRegularizadosRaiz, apiUrlRegistrados, apiUrlRegistradosRaiz, authorization] as [string, string, string, string, string];
+    const evalArgs = [urlsRegularizados, urlsRegistrados, authorization] as [string[], string[], string];
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-expect-error — Playwright evaluate types não inferem tuple generics corretamente
-    const responseData = await page.evaluate(async ([urlReg, urlRegRaiz, urlRes, urlResRaiz, auth]: [string, string, string, string, string]) => {
+    const responseData = await page.evaluate(async ([urlsReg, urlsRes, auth]: [string[], string[], string]) => {
       const fetchAnvisa = async (url: string) => {
         try {
           const res = await fetch(url, { headers: { Authorization: auth, Accept: 'application/json, text/plain, */*' } });
-          if (!res.ok) return [];
+          if (!res.ok) return { items: [], debug: res.status };
           const data = await res.json();
-          return data.content || data.produtos || [];
-        } catch { return []; }
+          return { items: data.content || data.produtos || data.registros || data.items || [], debug: 'ok' };
+        } catch (e: any) { return { items: [], debug: e.message }; }
       };
-      const [reg1, reg2, res1, res2] = await Promise.all([
-        fetchAnvisa(urlReg), fetchAnvisa(urlRegRaiz),
-        fetchAnvisa(urlRes), fetchAnvisa(urlResRaiz),
-      ]);
-      // Deduplica por processo
       const dedup = (arr: any[]) => {
         const seen = new Set<string>();
         return arr.filter(p => {
@@ -84,13 +86,19 @@ export async function GET(request: NextRequest) {
           seen.add(k); return true;
         });
       };
-      return {
-        regularizados: dedup([...reg1, ...reg2]),
-        registrados: dedup([...res1, ...res2]),
-      };
+      const regResults = await Promise.all(urlsReg.map(fetchAnvisa));
+      const resResults = await Promise.all(urlsRes.map(fetchAnvisa));
+      const regularizados = dedup(regResults.flatMap(r => r.items));
+      const registrados   = dedup(resResults.flatMap(r => r.items));
+      const debugReg = regResults.map((r, i) => `URL${i}(${r.items.length}/${r.debug})`);
+      const debugRes = resResults.map((r, i) => `URL${i}(${r.items.length}/${r.debug})`);
+      return { regularizados, registrados, debugReg, debugRes };
     }, evalArgs);
 
     await browser.close();
+
+    console.log(`[scrap] Debug Regularizados: ${(responseData as any).debugReg?.join(' | ')}`);
+    console.log(`[scrap] Debug Registrados:   ${(responseData as any).debugRes?.join(' | ')}`);
 
     // 5. Formata no padrão que o front-end espera
     const anvisa_produtos: any[] = [];
