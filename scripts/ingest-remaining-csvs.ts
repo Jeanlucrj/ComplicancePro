@@ -206,14 +206,15 @@ async function run() {
       conflict: null,
       full: true,
     },
-    {
-      label: 'Parecer de Medicamentos (sem chave única → truncate+insert)',
-      file: `${CSV_DIR}/TA_CONSULTA_PARECER_AVAL_MEDICAMENTOS.CSV`,
-      table: 'anvisa_parecer_aval_medicamentos',
-      conflict: null,  // sem UNIQUE constraint — usa truncate+insert
-      full: true,
-      noHeader: true,
-    },
+    // Parecer de Medicamentos: schema da tabela incompatível com o CSV atual — desabilitado
+    // {
+    //   label: 'Parecer de Medicamentos',
+    //   file: `${CSV_DIR}/TA_CONSULTA_PARECER_AVAL_MEDICAMENTOS.CSV`,
+    //   table: 'anvisa_parecer_aval_medicamentos',
+    //   conflict: null,
+    //   full: true,
+    //   noHeader: true,
+    // },
     {
       label: 'Situação Documentos Técnicos (5GB → últimas 10k linhas)',
       file: `${CSV_DIR}/TA_CONSULTA_SITUACAO_DOCUMENTO_TECNICO.CSV`,
