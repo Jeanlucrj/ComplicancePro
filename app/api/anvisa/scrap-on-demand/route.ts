@@ -51,15 +51,18 @@ export async function GET(request: NextRequest) {
     });
     const authorization = authHeaderRaw === 'Guest' ? 'Guest' : `Bearer ${authHeaderRaw}`;
 
-    // 3. URLs das APIs ANVISA
-    const apiUrlRegularizados = `https://consultas.anvisa.gov.br/api/consulta/cosmeticos/regularizados?count=1000&offset=0&filter%5Bcnpj%5D=${cnpjLimpo}`;
-    const apiUrlRegistrados   = `https://consultas.anvisa.gov.br/api/consulta/cosmeticos/registrados?count=1000&offset=0&filter%5Bcnpj%5D=${cnpjLimpo}`;
+    // 3. URLs das APIs ANVISA — tenta CNPJ completo e CNPJ raiz (8 dígitos) para regularizados
+    const cnpjRaiz = cnpjLimpo.substring(0, 8);
+    const apiUrlRegularizados     = `https://consultas.anvisa.gov.br/api/consulta/cosmeticos/regularizados?count=1000&offset=0&filter%5Bcnpj%5D=${cnpjLimpo}`;
+    const apiUrlRegularizadosRaiz = `https://consultas.anvisa.gov.br/api/consulta/cosmeticos/regularizados?count=1000&offset=0&filter%5Bcnpj%5D=${cnpjRaiz}`;
+    const apiUrlRegistrados       = `https://consultas.anvisa.gov.br/api/consulta/cosmeticos/registrados?count=1000&offset=0&filter%5Bcnpj%5D=${cnpjLimpo}`;
+    const apiUrlRegistradosRaiz   = `https://consultas.anvisa.gov.br/api/consulta/cosmeticos/registrados?count=1000&offset=0&filter%5Bcnpj%5D=${cnpjRaiz}`;
 
     // 4. Requisições REST da ANVISA dentro do browser (bypassa CORS/WAF)
-    const evalArgs = [apiUrlRegularizados, apiUrlRegistrados, authorization] as [string, string, string];
+    const evalArgs = [apiUrlRegularizados, apiUrlRegularizadosRaiz, apiUrlRegistrados, apiUrlRegistradosRaiz, authorization] as [string, string, string, string, string];
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-expect-error — Playwright evaluate types não inferem tuple generics corretamente
-    const responseData = await page.evaluate(async ([urlReg, urlRes, auth]: [string, string, string]) => {
+    const responseData = await page.evaluate(async ([urlReg, urlRegRaiz, urlRes, urlResRaiz, auth]: [string, string, string, string, string]) => {
       const fetchAnvisa = async (url: string) => {
         try {
           const res = await fetch(url, { headers: { Authorization: auth, Accept: 'application/json, text/plain, */*' } });
@@ -68,8 +71,23 @@ export async function GET(request: NextRequest) {
           return data.content || data.produtos || [];
         } catch { return []; }
       };
-      const [regularizados, registrados] = await Promise.all([fetchAnvisa(urlReg), fetchAnvisa(urlRes)]);
-      return { regularizados, registrados };
+      const [reg1, reg2, res1, res2] = await Promise.all([
+        fetchAnvisa(urlReg), fetchAnvisa(urlRegRaiz),
+        fetchAnvisa(urlRes), fetchAnvisa(urlResRaiz),
+      ]);
+      // Deduplica por processo
+      const dedup = (arr: any[]) => {
+        const seen = new Set<string>();
+        return arr.filter(p => {
+          const k = p.processo || p.numeroProcesso || JSON.stringify(p);
+          if (seen.has(k)) return false;
+          seen.add(k); return true;
+        });
+      };
+      return {
+        regularizados: dedup([...reg1, ...reg2]),
+        registrados: dedup([...res1, ...res2]),
+      };
     }, evalArgs);
 
     await browser.close();
