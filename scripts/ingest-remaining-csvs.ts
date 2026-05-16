@@ -196,7 +196,7 @@ async function run() {
       label: 'Empresas Internacionais',
       file: `${CSV_DIR}/TA_CONSULTA_FUNCIONAMENTO_EMPRESA_INTERNACIONAL.CSV`,
       table: 'anvisa_funcionamento_internacional',
-      conflict: 'co_seq_empresa_internacional',
+      conflict: null,
       full: true,
     },
     {

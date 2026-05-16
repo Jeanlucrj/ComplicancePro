@@ -218,12 +218,23 @@ async function sync(tipo: Tipo, fileOverride?: string) {
   }
   const csvRows = [...csvMapDedup.values()];
 
-  // Upsert direto em lotes (sem pré-busca — mais rápido e sem erro de schema cache)
-  console.log(`\nFazendo upsert de ${csvRows.length} registros em lotes de ${INSERT_BATCH}...`);
+  // Para AFE: truncate + insert (sem unique constraint confiável)
+  // Para demais: upsert por chave única
+  const useTruncate = tipo === 'afe';
+
+  if (useTruncate) {
+    console.log(`\nLimpando tabela ${cfg.table} antes de inserir...`);
+    await sb.from(cfg.table).delete().gte('id', 0);
+  }
+
+  const label = useTruncate ? 'Inserindo' : 'Fazendo upsert de';
+  console.log(`\n${label} ${csvRows.length} registros em lotes de ${INSERT_BATCH}...`);
   let count = 0, erros = 0;
   for (let i = 0; i < csvRows.length; i += INSERT_BATCH) {
     const lote = csvRows.slice(i, i + INSERT_BATCH);
-    const { error } = await sb.from(cfg.table).upsert(lote as any, { onConflict: uKey });
+    const { error } = useTruncate
+      ? await sb.from(cfg.table).insert(lote as any)
+      : await sb.from(cfg.table).upsert(lote as any, { onConflict: uKey });
     if (error) {
       erros++;
       console.error(`\n  ✗ Erro lote ${i}-${i + lote.length}: ${error.message}`);
