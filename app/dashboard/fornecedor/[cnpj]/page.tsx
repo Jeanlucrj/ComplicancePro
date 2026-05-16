@@ -173,8 +173,8 @@ export default function FornecedorPage() {
       );
       const data = await res.json();
 
-      // 2. Scrap On-Demand (Playwright) — só se não houver produtos ainda, timeout de 35s
-      if ((tipo === 'cosmetico' || tipo === 'ambos') && (!data.anvisa_produtos || data.anvisa_produtos.length === 0)) {
+      // 2. Scrap On-Demand (Playwright) — sempre que force=true (botão Sincronizar) ou sem produtos
+      if ((tipo === 'cosmetico' || tipo === 'ambos') && (force || !data.anvisa_produtos || data.anvisa_produtos.length === 0)) {
         try {
           const rpDb = await fetch(
             `/api/anvisa/scrap-on-demand?cnpj=${cnpj}`,
