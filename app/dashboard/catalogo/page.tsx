@@ -1,10 +1,11 @@
 'use client';
 
-import { useState, useCallback, useRef } from 'react';
+import { useState, useCallback, useRef, useEffect } from 'react';
 import {
   Search, Package, Pill, ShieldCheck, ShieldX, AlertTriangle,
   ChevronLeft, ChevronRight, ExternalLink, Filter, Clock, Building2
 } from 'lucide-react';
+import { useUserProfile } from '@/contexts/UserProfileContext';
 
 // ── Tipos ─────────────────────────────────────────────────────────────────────
 
@@ -83,6 +84,7 @@ function TipoBadge({ tipo }: { tipo: 'cosmetico' | 'medicamento' }) {
 // ── Componente principal ──────────────────────────────────────────────────────
 
 export default function CatalogoPage() {
+  const { tipoAnvisa: userTipoAnvisa, profileLoaded } = useUserProfile();
   const [query, setQuery] = useState('');
   const [campo, setCampo] = useState<Campo>('nome');
   const [tipo, setTipo] = useState<Tipo>('todos');
@@ -91,6 +93,10 @@ export default function CatalogoPage() {
   const [loading, setLoading] = useState(false);
   const [erro, setErro] = useState('');
   const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (profileLoaded && userTipoAnvisa !== 'ambos') setTipo(userTipoAnvisa);
+  }, [profileLoaded, userTipoAnvisa]);
 
   const buscar = useCallback(async (p = 1) => {
     const q = query.trim();
@@ -123,7 +129,7 @@ export default function CatalogoPage() {
           Catálogo ANVISA
         </h1>
         <p className="text-slate-400 text-sm mt-1">
-          Consulte produtos cosméticos e medicamentos registrados — base ANVISA Dados Abertos
+          Consulte produtos cosméticos e medicamentos registrados na base ANVISA
         </p>
       </div>
 
@@ -155,11 +161,14 @@ export default function CatalogoPage() {
             </button>
           ))}
           <div className="ml-auto flex items-center gap-2">
-            {([
-              { value: 'todos', label: 'Todos' },
-              { value: 'cosmetico', label: 'Cosméticos' },
-              { value: 'medicamento', label: 'Medicamentos' },
-            ] as { value: Tipo; label: string }[]).map(opt => (
+            {(profileLoaded && userTipoAnvisa !== 'ambos'
+              ? [{ value: userTipoAnvisa as Tipo, label: userTipoAnvisa === 'cosmetico' ? 'Cosméticos' : 'Medicamentos' }]
+              : ([
+                  { value: 'todos', label: 'Todos' },
+                  { value: 'cosmetico', label: 'Cosméticos' },
+                  { value: 'medicamento', label: 'Medicamentos' },
+                ] as { value: Tipo; label: string }[])
+            ).map(opt => (
               <button
                 key={opt.value}
                 onClick={() => { setTipo(opt.value); setResultado(null); }}
