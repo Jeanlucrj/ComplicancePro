@@ -216,10 +216,13 @@ export default function DashboardPage() {
             Digite o CNPJ para consultar dados reais da Receita Federal e ANVISA instantaneamente.
           </p>
 
-          {/* Toggle Tipo ANVISA */}
+          {/* Toggle Tipo ANVISA — exibe apenas o(s) tipo(s) cadastrado(s) pela empresa */}
           <div className="flex gap-2 mb-4">
             <p className="text-blue-100 text-sm font-medium self-center mr-1">Tipo de produto:</p>
-            {(['cosmetico', 'medicamento', 'ambos'] as const).map(tipo => (
+            {(profileLoaded && userTipoAnvisa !== 'ambos'
+              ? [userTipoAnvisa]
+              : (['cosmetico', 'medicamento', 'ambos'] as const)
+            ).map(tipo => (
               <button
                 key={tipo}
                 onClick={() => setTipoAnvisa(tipo)}
