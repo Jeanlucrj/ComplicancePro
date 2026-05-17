@@ -125,7 +125,7 @@ export async function consultarReceitaFederal(cnpj: string): Promise<ReceitaFede
   const response = await fetch(url, {
     headers: {
       'Accept': 'application/json',
-      'User-Agent': 'CompliancePro/1.0',
+      'User-Agent': 'DataControl/1.0',
     },
     signal: controller.signal,
     next: { revalidate: 3600 },

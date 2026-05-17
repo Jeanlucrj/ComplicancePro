@@ -3,7 +3,8 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { Package, Mail, Lock, User, Loader2, CheckCircle2, Building2, MapPin, Briefcase, Search, Phone } from 'lucide-react';
+import { Mail, Lock, User, Loader2, CheckCircle2, Building2, MapPin, Briefcase, Search, Phone } from 'lucide-react';
+import { BrandLogoIcon } from '@/components/BrandLogo';
 import { supabase } from '@/lib/supabase';
 
 export default function SignupPage() {
@@ -151,10 +152,10 @@ export default function SignupPage() {
       <div className="sm:mx-auto sm:w-full sm:max-w-2xl">
         <Link href="/" className="flex justify-center items-center space-x-3 mb-8">
           <div className="w-14 h-14 bg-blue-600 rounded-2xl flex items-center justify-center shadow-lg shadow-blue-500/20">
-            <Package className="h-8 w-8 text-white" />
+            <BrandLogoIcon className="h-8 w-8 text-white" />
           </div>
           <span className="text-3xl font-bold text-slate-900 dark:text-white tracking-tight">
-            CompliancePro
+            Data Control
           </span>
         </Link>
         <h2 className="text-center text-4xl font-extrabold text-slate-900 dark:text-white tracking-tight">

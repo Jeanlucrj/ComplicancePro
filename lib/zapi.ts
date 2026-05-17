@@ -54,7 +54,7 @@ export function formatarMensagemAlertas(
   const linhas = alertas.map(a => `${emoji(a.severidade)} *${a.titulo}*\n${a.descricao}`).join('\n\n');
 
   return (
-    `🔔 *CompliancePro — Alertas ANVISA*\n` +
+    `🔔 *Data Control — Alertas ANVISA*\n` +
     `Empresa: ${nomeEmpresa}\n` +
     `Data: ${new Date().toLocaleDateString('pt-BR')}\n\n` +
     linhas +

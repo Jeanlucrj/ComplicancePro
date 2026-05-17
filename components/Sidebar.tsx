@@ -3,7 +3,8 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Search, FileText, Bell, ShieldCheck, LogOut, User, Building2, Zap, BookOpen, AlertOctagon } from 'lucide-react';
+import { Search, FileText, Bell, LogOut, User, Building2, Zap, BookOpen, AlertOctagon } from 'lucide-react';
+import { BrandLogoIcon } from './BrandLogo';
 import { supabase } from '@/lib/supabase';
 import { ThemeToggle } from './ThemeToggle';
 
@@ -48,8 +49,8 @@ export default function Sidebar() {
       {/* Logo & Company */}
       <div className="p-6 border-b border-slate-800 space-y-4">
         <Link href="/dashboard" className="flex items-center space-x-2">
-          <ShieldCheck className="h-8 w-8 text-blue-400" />
-          <span className="text-xl font-bold text-white tracking-tight">CompliancePro</span>
+          <BrandLogoIcon className="h-8 w-8 text-blue-400" />
+          <span className="text-xl font-bold text-white tracking-tight">Data Control</span>
         </Link>
         
         {company && (

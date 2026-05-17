@@ -17,7 +17,7 @@ export async function POST(request: NextRequest) {
     }
 
     const mensagem =
-      `✅ *CompliancePro — Teste de Notificação*\n\n` +
+      `✅ *Data Control — Teste de Notificação*\n\n` +
       `Seu WhatsApp foi configurado com sucesso!\n` +
       `Você receberá alertas ANVISA por aqui.\n\n` +
       `_${new Date().toLocaleString('pt-BR')}_`;

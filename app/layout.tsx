@@ -3,7 +3,7 @@ import "./globals.css";
 import { ThemeProvider } from "@/components/ThemeProvider";
 
 export const metadata: Metadata = {
-  title: "CompliancePro - Homologação de Fornecedores de Cosméticos",
+  title: "Data Control - Homologação de Fornecedores de Cosméticos",
   description: "Hub de homologação e procuradoria para compradores de cosméticos. Compliance Anvisa, Saúde Fiscal e Inteligência Logística.",
 };
 

@@ -3,7 +3,8 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { Package, Mail, Lock, Loader2, ArrowRight } from 'lucide-react';
+import { Mail, Lock, Loader2, ArrowRight } from 'lucide-react';
+import { BrandLogoIcon } from '@/components/BrandLogo';
 import { supabase } from '@/lib/supabase';
 
 export default function LoginPage() {
@@ -85,10 +86,10 @@ export default function LoginPage() {
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
         <Link href="/" className="flex justify-center items-center space-x-2 mb-6">
           <div className="w-12 h-12 bg-blue-600 rounded-2xl flex items-center justify-center shadow-lg shadow-blue-500/20">
-            <Package className="h-7 w-7 text-white" />
+            <BrandLogoIcon className="h-7 w-7 text-white" />
           </div>
           <span className="text-2xl font-bold text-slate-900 dark:text-white">
-            CompliancePro
+            Data Control
           </span>
         </Link>
         <h2 className="text-center text-3xl font-extrabold text-slate-900 dark:text-white">

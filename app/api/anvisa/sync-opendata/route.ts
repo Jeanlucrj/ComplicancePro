@@ -106,7 +106,7 @@ function mapMedicamento(row: Record<string, string>) {
 
 async function downloadCSV(url: string): Promise<Record<string, string>[]> {
   const res = await fetch(url, {
-    headers: { 'User-Agent': 'CompliancePro-SaaS/1.0 (dados-abertos-anvisa)' },
+    headers: { 'User-Agent': 'DataControl-SaaS/1.0 (dados-abertos-anvisa)' },
     signal: AbortSignal.timeout(240_000),
   });
   if (!res.ok) throw new Error(`HTTP ${res.status}`);

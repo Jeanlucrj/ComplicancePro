@@ -975,7 +975,7 @@ export default function FornecedorPage() {
                   </div>
                   <div className="col-span-2">
                     <p className="text-slate-500 dark:text-slate-400">E-mail para Envio</p>
-                    <p className="font-medium text-blue-600 dark:text-blue-400">{fornecedor!.email || 'comercial@compliancepro.com'}</p>
+                    <p className="font-medium text-blue-600 dark:text-blue-400">{fornecedor!.email || 'comercial@datacontrol.com.br'}</p>
                   </div>
                   <div>
                     <p className="text-slate-500 dark:text-slate-400">Telefone</p>

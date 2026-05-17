@@ -104,7 +104,7 @@ export default function Home() {
           <div className="grid md:grid-cols-2 gap-12 items-center">
             <div>
               <h2 className="text-4xl font-bold text-slate-900 dark:text-white mb-6">
-                Por que escolher o CompliancePro?
+                Por que escolher o Data Control?
               </h2>
               <div className="space-y-4">
                 <div className="flex items-start space-x-3">
@@ -145,7 +145,7 @@ export default function Home() {
               </div>
               <div className="border-t dark:border-slate-800 pt-6">
                 <p className="text-slate-700 dark:text-slate-300 italic mb-4">
-                  "O CompliancePro transformou nossa operação. Hoje homologamos
+                  "O Data Control transformou nossa operação. Hoje homologamos
                   fornecedores em minutos e temos total confiança na compliance."
                 </p>
                 <p className="font-semibold text-slate-900 dark:text-white">
@@ -258,7 +258,7 @@ export default function Home() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center">
             <p className="text-slate-400">
-              © 2024 CompliancePro. Todos os direitos reservados.
+              © 2024 Data Control. Todos os direitos reservados.
             </p>
             <div className="mt-4 space-x-6">
               <a href="#" className="text-slate-400 hover:text-white transition">
