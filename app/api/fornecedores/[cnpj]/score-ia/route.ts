@@ -152,6 +152,42 @@ export async function POST(
 
     const f = fornRes[0] as any;
 
+    // 1b. Verificar cache de 24h e crédito mensal
+    const SCORE_TTL_MS = 24 * 60 * 60 * 1000;
+    const scoreGeradoEm = f.score_gerado_em ? new Date(f.score_gerado_em) : null;
+    const dentroDoCache = scoreGeradoEm && (Date.now() - scoreGeradoEm.getTime() < SCORE_TTL_MS);
+
+    if (!dentroDoCache) {
+      try {
+        const { data: userData } = await supabaseAdmin.auth.admin.getUserById(userId);
+        const plano: string = userData?.user?.user_metadata?.plano || 'pro';
+
+        if (plano !== 'enterprise') {
+          const limite = 50;
+          const inicioMes = new Date();
+          inicioMes.setDate(1);
+          inicioMes.setHours(0, 0, 0, 0);
+
+          const { count } = await supabaseAdmin
+            .from('consultas')
+            .select('*', { count: 'exact', head: true })
+            .eq('user_id', userId)
+            .gte('created_at', inicioMes.toISOString());
+
+          if ((count ?? 0) >= limite) {
+            return NextResponse.json({
+              error: `Limite de ${limite} consultas mensais atingido. Faça upgrade para continuar.`,
+              quota_exceeded: true,
+              usadas: count,
+              limite,
+            }, { status: 429 });
+          }
+        }
+      } catch (quotaErr: any) {
+        console.warn('[score-ia] Aviso quota check:', quotaErr.message);
+      }
+    }
+
     // 2. Busca apenas as colunas necessárias para o cálculo de score
     const [cosmRes, medsRes] = await Promise.allSettled([
       supabaseAdmin.from('anvisa_cosmeticos').select('seguro_compra, vencimento_limpo').eq('cnpj', cnpj).limit(1000),
@@ -259,13 +295,28 @@ export async function POST(
       gerado_em: new Date().toISOString(),
     };
 
-    // 6. Persiste score numérico no fornecedor (atualiza score_qualidade)
+    // 6. Persiste score + timestamp no fornecedor
+    const agora = new Date().toISOString();
     try {
       await supabaseAdmin.from('fornecedores').update({
         score_qualidade: score,
+        score_gerado_em: agora,
       }).eq('id', f.id);
     } catch {
-      // falha silenciosa — não bloqueia a resposta
+      // falha silenciosa
+    }
+
+    // 7. Registra crédito consumido (apenas quando fora do cache de 24h)
+    if (!dentroDoCache) {
+      try {
+        await supabaseAdmin.from('consultas').insert({
+          user_id: userId,
+          cnpj,
+          tipo: 'score_ia',
+        });
+      } catch (logErr: any) {
+        console.warn('[score-ia] Aviso log crédito:', logErr.message);
+      }
     }
 
     return NextResponse.json(result);

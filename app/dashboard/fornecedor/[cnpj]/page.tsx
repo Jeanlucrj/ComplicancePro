@@ -454,7 +454,7 @@ export default function FornecedorPage() {
 
       {/* Score IA */}
       {userId && (
-        <ScoreIACard cnpj={cnpj} userId={userId} autoLoad={true} />
+        <ScoreIACard cnpj={cnpj} userId={userId} autoLoad={true} scoreGeradoEmDb={fornecedor?.score_gerado_em ?? null} />
       )}
 
       <div className="grid lg:grid-cols-3 gap-6">

@@ -7,6 +7,8 @@ import type { ScoreIAResult } from '@/app/api/fornecedores/[cnpj]/score-ia/route
 interface ScoreIACardProps {
   cnpj: string;
   userId: string;
+  /** Data da última geração salva no banco (fallback para exibição cross-device) */
+  scoreGeradoEmDb?: string | null;
   /** Se true, solicita o score automaticamente ao montar */
   autoLoad?: boolean;
 }
@@ -127,7 +129,7 @@ const nivelClasses: Record<ScoreIAResult['cor'], string> = {
 
 // ── Componente principal ──────────────────────────────────────────────────────
 
-export default function ScoreIACard({ cnpj, userId, autoLoad = true }: ScoreIACardProps) {
+export default function ScoreIACard({ cnpj, userId, scoreGeradoEmDb, autoLoad = true }: ScoreIACardProps) {
   const [result, setResult] = useState<ScoreIAResult | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -149,6 +151,10 @@ export default function ScoreIACard({ cnpj, userId, autoLoad = true }: ScoreIACa
         `/api/fornecedores/${cnpj}/score-ia?userId=${userId}`,
         { method: 'POST' }
       );
+      if (res.status === 429) {
+        const body = await res.json().catch(() => ({}));
+        throw new Error(body.error || 'Limite mensal de consultas atingido. Faça upgrade para continuar.');
+      }
       if (!res.ok) {
         const body = await res.json().catch(() => ({}));
         throw new Error(body.error || `Erro ${res.status}`);
@@ -326,17 +332,26 @@ export default function ScoreIACard({ cnpj, userId, autoLoad = true }: ScoreIACa
           )}
 
           {/* Rodapé */}
-          <div className="flex items-center justify-between pt-2 border-t border-current/10">
-            <span className="text-[10px] opacity-50">
-              Gerado em {new Date(result!.gerado_em).toLocaleString('pt-BR')} · Cache 24h
-            </span>
-            <button
-              onClick={() => fetchScore(true)}
-              className="flex items-center gap-1 text-[10px] font-semibold opacity-60 hover:opacity-100 transition"
-            >
-              <RefreshCw className="h-3 w-3" /> Atualizar
-            </button>
-          </div>
+          {(() => {
+            const SCORE_TTL_MS = 24 * 60 * 60 * 1000;
+            const ultimaGeracao = result ? new Date(result.gerado_em) : scoreGeradoEmDb ? new Date(scoreGeradoEmDb) : null;
+            const dentroDoCache = ultimaGeracao && (Date.now() - ultimaGeracao.getTime() < SCORE_TTL_MS);
+            return (
+              <div className="flex items-center justify-between pt-2 border-t border-current/10">
+                <span className="text-[10px] opacity-50">
+                  Gerado em {ultimaGeracao ? ultimaGeracao.toLocaleString('pt-BR') : '—'}
+                </span>
+                <button
+                  onClick={() => fetchScore(true)}
+                  className="flex items-center gap-1 text-[10px] font-semibold opacity-60 hover:opacity-100 transition"
+                  title={dentroDoCache ? 'Atualizar sem custo (dentro do cache de 24h)' : 'Consome 1 crédito'}
+                >
+                  <RefreshCw className="h-3 w-3" />
+                  {dentroDoCache ? 'Atualizar' : 'Atualizar · 1 crédito'}
+                </button>
+              </div>
+            );
+          })()}
         </div>
       )}
     </div>

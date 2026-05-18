@@ -68,6 +68,7 @@ export interface Fornecedor {
   situacao_receita: string;
   status_anvisa: string;
   score_qualidade: number | null;
+  score_gerado_em: string | null;
   email: string | null;
   telefone: string | null;
   tipo_anvisa: 'cosmetico' | 'medicamento' | 'ambos' | null;
