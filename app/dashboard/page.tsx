@@ -80,6 +80,23 @@ export default function DashboardPage() {
     if (profileLoaded && userTipoAnvisa) setTipoAnvisa(userTipoAnvisa);
   }, [profileLoaded, userTipoAnvisa]);
 
+  // ── quota de consultas mensais ───────────────────────────────────────────
+  const [consultasUsadas, setConsultasUsadas] = useState(0);
+  const [consultasLimite, setConsultasLimite] = useState<number | null>(50);
+  const [quotaLoaded, setQuotaLoaded] = useState(false);
+
+  useEffect(() => {
+    if (!userId) return;
+    fetch(`/api/consultas?userId=${userId}`)
+      .then(r => r.json())
+      .then(d => {
+        setConsultasUsadas(d.usadas ?? 0);
+        setConsultasLimite(d.limite ?? 50);
+        setQuotaLoaded(true);
+      })
+      .catch(() => setQuotaLoaded(true));
+  }, [userId]);
+
   // Carrega fornecedores
   useEffect(() => {
     if (userId) carregarFornecedores();
@@ -122,11 +139,17 @@ export default function DashboardPage() {
       const res = await fetch(`/api/enriquecer?cnpj=${cnpjLimpo}&tipo=${tipoAnvisa}&userId=${userId || ''}`);
       const data = await res.json();
 
+      if (res.status === 429 && data.quota_exceeded) {
+        setAvaliacaoError(`Limite de ${data.limite} consultas mensais atingido. Entre em contato para fazer upgrade.`);
+        return;
+      }
+
       if (!data.receita_federal && data.erros?.length > 0) {
         setAvaliacaoError(`Não foi possível avaliar: ${data.erros[0]}`);
       } else {
         setAvaliacaoResult(data);
         setMostrarResultado(true);
+        setConsultasUsadas(prev => prev + 1);
         setTimeout(() => resultRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 100);
       }
     } catch {
@@ -251,7 +274,7 @@ export default function DashboardPage() {
             </div>
             <button
               onClick={avaliarNovoCnpj}
-              disabled={avaliando || novoCnpj.replace(/\D/g, '').length < 14}
+              disabled={avaliando || novoCnpj.replace(/\D/g, '').length < 14 || (quotaLoaded && consultasLimite !== null && consultasUsadas >= consultasLimite)}
               className="px-6 py-3 bg-white text-blue-700 font-bold rounded-xl hover:bg-blue-50 transition shadow-lg active:scale-95 disabled:opacity-60 disabled:cursor-not-allowed flex items-center gap-2 whitespace-nowrap"
             >
               {avaliando
@@ -265,6 +288,36 @@ export default function DashboardPage() {
             <div className="mt-3 flex items-center gap-2 text-red-200 text-sm bg-red-500/20 border border-red-400/30 rounded-lg px-3 py-2">
               <AlertCircle className="h-4 w-4 flex-shrink-0" />
               {avaliacaoError}
+            </div>
+          )}
+
+          {/* ── Barra de quota mensal ──────────────────────────────────────── */}
+          {quotaLoaded && consultasLimite !== null && (
+            <div className="mt-4 bg-white/10 backdrop-blur-sm rounded-xl px-4 py-3 border border-white/15">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-blue-100 text-xs font-medium">Consultas este mês</span>
+                <span className={`text-xs font-bold tabular-nums ${
+                  consultasUsadas >= consultasLimite ? 'text-red-300' :
+                  consultasUsadas >= consultasLimite * 0.8 ? 'text-yellow-300' : 'text-white'
+                }`}>
+                  {consultasUsadas} / {consultasLimite}
+                </span>
+              </div>
+              <div className="w-full bg-white/20 rounded-full h-1.5 overflow-hidden">
+                <div
+                  className={`h-1.5 rounded-full transition-all duration-500 ${
+                    consultasUsadas >= consultasLimite ? 'bg-red-400' :
+                    consultasUsadas >= consultasLimite * 0.8 ? 'bg-yellow-400' : 'bg-green-400'
+                  }`}
+                  style={{ width: `${Math.min(100, (consultasUsadas / consultasLimite) * 100)}%` }}
+                />
+              </div>
+              {consultasUsadas >= consultasLimite && (
+                <p className="text-red-300 text-xs mt-2 flex items-center gap-1">
+                  <AlertCircle className="h-3 w-3 flex-shrink-0" />
+                  Limite atingido. Entre em contato para fazer upgrade.
+                </p>
+              )}
             </div>
           )}
         </div>

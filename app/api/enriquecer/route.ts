@@ -27,6 +27,39 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Parâmetro "cnpj" é obrigatório.' }, { status: 400 });
     }
 
+    // ── Verificar quota mensal ──────────────────────────────────────────────
+    if (userId) {
+      try {
+        const { data: userData } = await supabaseAdmin.auth.admin.getUserById(userId);
+        const plano: string = userData?.user?.user_metadata?.plano || 'pro';
+
+        if (plano !== 'enterprise') {
+          const limite = 50;
+          const inicioMes = new Date();
+          inicioMes.setDate(1);
+          inicioMes.setHours(0, 0, 0, 0);
+
+          const { count } = await supabaseAdmin
+            .from('consultas')
+            .select('*', { count: 'exact', head: true })
+            .eq('user_id', userId)
+            .gte('created_at', inicioMes.toISOString());
+
+          if ((count ?? 0) >= limite) {
+            return NextResponse.json({
+              error: `Limite de ${limite} consultas mensais atingido.`,
+              quota_exceeded: true,
+              usadas: count,
+              limite,
+            }, { status: 429 });
+          }
+        }
+      } catch (quotaErr: any) {
+        // Tabela ainda não criada ou outro erro — permite continuar sem bloquear
+        console.warn('[enriquecer] Aviso quota check:', quotaErr.message);
+      }
+    }
+
     // REGRA DE NEGÓCIO: o tipo do usuário logado tinha prioridade absoluta, 
     // mas isso impedia de ver medicamentos em empresas de farma se o usuário fosse de cosméticos.
     // Removendo a trava para permitir busca flexível.
@@ -121,6 +154,18 @@ export async function GET(request: NextRequest) {
         }
       } catch (dbErr: any) {
         resposta.erros.push(`Erro ao salvar no banco: ${dbErr.message}`);
+      }
+    }
+
+    // ── Registrar consulta realizada com sucesso ────────────────────────────
+    if (userId && resultado.receita) {
+      try {
+        await supabaseAdmin.from('consultas').insert({
+          user_id: userId,
+          cnpj: cnpj.replace(/\D/g, ''),
+        });
+      } catch (logErr: any) {
+        console.warn('[enriquecer] Aviso log consulta:', logErr.message);
       }
     }
 
