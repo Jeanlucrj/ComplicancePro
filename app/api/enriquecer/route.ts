@@ -2,6 +2,28 @@ import { NextRequest, NextResponse } from 'next/server';
 import { enriquecerFornecedor, mapearSituacaoReceita } from '@/lib/enrichment';
 import { supabaseAdmin } from '@/lib/supabase-server';
 
+// ── CNAEs classificados por setor ─────────────────────────────────────────────
+
+const CNAE_COSMETICO = ['2063', '4772', '4646', '2061', '2062', '9602'];
+const CNAE_MEDICAMENTO = ['2121', '2122', '2123', '2124', '4644', '4771', '4773', '8630', '8650'];
+
+function detectarSetorPorCnae(
+  codigo?: string,
+  descricao?: string
+): 'cosmetico' | 'medicamento' | null {
+  if (codigo) {
+    const prefix = codigo.replace(/\D/g, '').substring(0, 4);
+    if (CNAE_COSMETICO.includes(prefix)) return 'cosmetico';
+    if (CNAE_MEDICAMENTO.includes(prefix)) return 'medicamento';
+  }
+  if (descricao) {
+    const d = descricao.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
+    if (d.includes('cosmet') || d.includes('perfum') || d.includes('higiene pessoal') || d.includes('beleza') || d.includes('estetica') || d.includes('cabeleireiro')) return 'cosmetico';
+    if (d.includes('medicament') || d.includes('farmace') || d.includes('farmacia') || d.includes('drogaria') || d.includes('homoeopat') || d.includes('fitoterapic') || d.includes('droga') || d.includes('hospital')) return 'medicamento';
+  }
+  return null;
+}
+
 export const dynamic = 'force-dynamic';
 
 /**
@@ -96,6 +118,7 @@ export async function GET(request: NextRequest) {
       anvisa_produtos: resultado.anvisa_produtos || [],
       erros: resultado.erros,
       salvo_no_banco: false,
+      setor_detectado: null as 'cosmetico' | 'medicamento' | null,
     };
 
     if (resultado.receita) {
@@ -114,10 +137,15 @@ export async function GET(request: NextRequest) {
         telefone: r.ddd_telefone_1,
         email: r.email,
         cnae_principal: r.cnae_fiscal_descricao,
+        cnae_codigo: String(r.cnae_fiscal || ''),
         porte: r.porte,
         natureza_juridica: r.natureza_juridica,
         socios: Array.isArray(r.qsa) ? r.qsa.map((s: any) => ({ nome: s.nome_socio, qualificacao: s.qualificacao_socio })) : [],
       };
+      resposta.setor_detectado = detectarSetorPorCnae(
+        String(r.cnae_fiscal || ''),
+        r.cnae_fiscal_descricao || ''
+      );
     }
 
     if (salvar && resultado.receita) {

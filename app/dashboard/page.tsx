@@ -17,6 +17,7 @@ interface AvaliacaoResult {
   consultado_em: string;
   salvo_no_banco: boolean;
   erros: string[];
+  setor_detectado: 'cosmetico' | 'medicamento' | null;
   receita_federal: {
     razao_social: string;
     nome_fantasia: string;
@@ -28,6 +29,7 @@ interface AvaliacaoResult {
     cep: string;
     telefone: string;
     cnae_principal: string;
+    cnae_codigo: string;
     porte: string;
     socios: { nome: string; qualificacao: string }[];
   } | null;
@@ -348,6 +350,35 @@ export default function DashboardPage() {
               <ChevronUp className="h-5 w-5" />
             </button>
           </div>
+
+          {/* ── Alerta de incompatibilidade de setor por CNAE ───────────── */}
+          {(() => {
+            const setorDetectado = avaliacaoResult.setor_detectado;
+            const setorEmpresa = userTipoAnvisa;
+            const incompativel =
+              setorDetectado !== null &&
+              setorEmpresa !== 'ambos' &&
+              setorDetectado !== setorEmpresa;
+            if (!incompativel) return null;
+            const nomeDetectado = setorDetectado === 'cosmetico' ? 'Cosméticos' : 'Medicamentos';
+            const nomeEmpresa   = setorEmpresa   === 'cosmetico' ? 'Cosméticos' : 'Medicamentos';
+            const cnae = avaliacaoResult.receita_federal?.cnae_principal || '';
+            return (
+              <div className="mx-6 mt-4 flex items-start gap-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-300 dark:border-amber-700 rounded-xl px-4 py-3">
+                <AlertCircle className="h-5 w-5 text-amber-500 shrink-0 mt-0.5" />
+                <div>
+                  <p className="font-bold text-amber-800 dark:text-amber-300 text-sm">
+                    Fornecedor pode ser incompatível com seu setor
+                  </p>
+                  <p className="text-amber-700 dark:text-amber-400 text-xs mt-1 leading-relaxed">
+                    O CNAE deste fornecedor indica atuação em <strong>{nomeDetectado}</strong>
+                    {cnae ? ` (${cnae})` : ''}, mas sua empresa está cadastrada como <strong>{nomeEmpresa}</strong>.
+                    Confirme se este fornecedor é adequado para sua operação antes de homologar.
+                  </p>
+                </div>
+              </div>
+            );
+          })()}
 
           <div className="p-6 grid md:grid-cols-3 gap-6">
             {/* Receita Federal */}
