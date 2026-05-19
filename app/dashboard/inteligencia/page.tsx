@@ -56,15 +56,17 @@ export default function InteligenciaPage() {
     finally { setLoadingCnae(false); }
   }
 
-  // Entries filtradas por CNAE (mantém registros sem CNPJ ou com setor desconhecido)
+  // Entries filtradas por CNAE
   const entriesFiltradas = useMemo(() => {
     if (userTipoAnvisa === 'ambos') return entries;
     return entries.filter(e => {
       const cnpj = extrairCnpj(e.empresa || '');
-      if (!cnpj) return true;
+      if (!cnpj) return true;                      // sem CNPJ → mantém
       const info = cnaeMap[cnpj];
-      if (!info || info.setor === null) return true; // sem dado → mantém
-      return info.setor === userTipoAnvisa;
+      if (!info) return true;                      // ainda carregando → mantém
+      if (info.setor === 'outro') return false;    // transporte/construção/etc → exclui
+      if (info.setor === null) return true;        // setor desconhecido → mantém (conservador)
+      return info.setor === userTipoAnvisa;        // mantém só se bate com o setor do usuário
     });
   }, [entries, cnaeMap, userTipoAnvisa]);
 

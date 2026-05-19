@@ -5,17 +5,37 @@ export const dynamic = 'force-dynamic';
 
 // ── Mesma lógica de detecção de setor do /api/enriquecer ─────────────────────
 
-const CNAE_COSMETICO    = ['2063', '4772', '4646', '2061', '2062', '9602'];
-const CNAE_MEDICAMENTO  = ['2121', '2122', '2123', '2124', '4644', '4771', '4773', '8630', '8650'];
+const CNAE_COSMETICO   = ['2063', '4772', '4646', '2061', '2062', '9602'];
+const CNAE_MEDICAMENTO = ['2121', '2122', '2123', '2124', '4644', '4771', '4773', '8630', '8650'];
 
-function detectarSetor(codigo: string, descricao: string): 'cosmetico' | 'medicamento' | null {
+// CNAEs claramente fora do setor saúde/beleza — excluídos para usuários com setor específico
+const CNAE_OUTRO = [
+  // Transporte e logística
+  '4911', '4912', '4921', '4922', '4923', '4924', '4929',
+  '4930', '4940', '4950', '5091', '5099', '5111', '5112',
+  '5210', '5211', '5212',
+  // Construção civil
+  '4110', '4120', '4211', '4212', '4213', '4221', '4222', '4223',
+  // Agricultura e pecuária
+  '0111', '0112', '0113', '0114', '0115', '0116', '0119', '0121', '0122',
+  // Segurança e vigilância
+  '8011', '8012', '8020', '8030',
+  // Educação
+  '8511', '8512', '8513', '8521', '8531', '8532',
+  // Serviços financeiros
+  '6410', '6421', '6422', '6423', '6424', '6431', '6432',
+];
+
+function detectarSetor(codigo: string, descricao: string): 'cosmetico' | 'medicamento' | 'outro' | null {
   const prefix = codigo.replace(/\D/g, '').substring(0, 4);
   if (CNAE_COSMETICO.includes(prefix))   return 'cosmetico';
   if (CNAE_MEDICAMENTO.includes(prefix)) return 'medicamento';
+  if (CNAE_OUTRO.includes(prefix))       return 'outro';
 
   const d = (descricao || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
   if (d.includes('cosmet') || d.includes('perfum') || d.includes('higiene pessoal') || d.includes('beleza') || d.includes('estetica')) return 'cosmetico';
   if (d.includes('medicament') || d.includes('farmace') || d.includes('farmacia') || d.includes('drogaria') || d.includes('droga') || d.includes('hospital')) return 'medicamento';
+  if (d.includes('transport') || d.includes('logistic') || d.includes('carga') || d.includes('frete') || d.includes('constru') || d.includes('agricul')) return 'outro';
 
   return null;
 }
@@ -25,7 +45,7 @@ function detectarSetor(codigo: string, descricao: string): 'cosmetico' | 'medica
 export interface CnaeInfo {
   cnae_codigo: string;
   cnae_descricao: string;
-  setor: 'cosmetico' | 'medicamento' | null;
+  setor: 'cosmetico' | 'medicamento' | 'outro' | null;
 }
 
 export async function GET(request: NextRequest) {
