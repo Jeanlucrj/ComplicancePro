@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import {
   Zap,
   Search,
@@ -18,6 +18,7 @@ import {
 import Link from 'next/link';
 import { supabase } from '@/lib/supabase';
 import { DOUEntry } from '@/lib/types';
+import type { CnaeInfo } from '@/app/api/cnpj-cnae/route';
 import { useUserProfile } from '@/contexts/UserProfileContext';
 
 export default function InteligenciaPage() {
@@ -32,6 +33,40 @@ export default function InteligenciaPage() {
   const [syncMsg, setSyncMsg] = useState<string | null>(null);
 
   const sectorLocked = userTipoAnvisa === 'cosmetico' || userTipoAnvisa === 'medicamento';
+
+  // ── CNAE cache ────────────────────────────────────────────────────────────
+  const [cnaeMap, setCnaeMap] = useState<Record<string, CnaeInfo>>({});
+  const [loadingCnae, setLoadingCnae] = useState(false);
+
+  function extrairCnpj(empresa: string): string | null {
+    const match = empresa?.match(/(\d{2}\.\d{3}\.\d{3}\/\d{4}-\d{2})/);
+    return match ? match[1].replace(/\D/g, '') : null;
+  }
+
+  async function fetchCnaes(lista: DOUEntry[]) {
+    const cnpjs = [...new Set(
+      lista.map(e => extrairCnpj(e.empresa || '')).filter((c): c is string => c !== null)
+    )];
+    if (cnpjs.length === 0) return;
+    setLoadingCnae(true);
+    try {
+      const res = await fetch(`/api/cnpj-cnae?cnpjs=${cnpjs.join(',')}`);
+      if (res.ok) { const data = await res.json(); setCnaeMap(prev => ({ ...prev, ...data })); }
+    } catch { /* silencioso */ }
+    finally { setLoadingCnae(false); }
+  }
+
+  // Entries filtradas por CNAE (mantém registros sem CNPJ ou com setor desconhecido)
+  const entriesFiltradas = useMemo(() => {
+    if (userTipoAnvisa === 'ambos') return entries;
+    return entries.filter(e => {
+      const cnpj = extrairCnpj(e.empresa || '');
+      if (!cnpj) return true;
+      const info = cnaeMap[cnpj];
+      if (!info || info.setor === null) return true; // sem dado → mantém
+      return info.setor === userTipoAnvisa;
+    });
+  }, [entries, cnaeMap, userTipoAnvisa]);
 
   // Inicializa categoria quando o perfil é carregado
   useEffect(() => {
@@ -131,8 +166,10 @@ export default function InteligenciaPage() {
       const { data, count, error } = await dbq.order('timestamp', { ascending: false }).limit(50);
       if (error) throw error;
 
-      setEntries(data as unknown as DOUEntry[]);
+      const lista = data as unknown as DOUEntry[];
+      setEntries(lista);
       setTotal(count || 0);
+      fetchCnaes(lista);
     } catch (error) {
       console.error('Erro ao buscar inteligência DOU:', error);
     } finally {
@@ -252,7 +289,13 @@ export default function InteligenciaPage() {
         </div>
       ) : (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 animate-in slide-in-from-bottom-8 duration-500">
-          {entries.map((entry) => {
+          {loadingCnae && (
+            <div className="col-span-2 flex items-center gap-2 text-xs text-slate-400 px-1">
+              <Loader2 className="h-3 w-3 animate-spin" />
+              Verificando compatibilidade de setor via CNAE...
+            </div>
+          )}
+          {entriesFiltradas.map((entry) => {
             const isSuspensao = entry.tipo_evento === 'SUSPENSÃO_DE_PRODUTO';
             const isCosmetico = entry.categoria?.startsWith('Cosmético');
             const isMedicamento = entry.categoria?.startsWith('Medicamento');
@@ -323,6 +366,24 @@ export default function InteligenciaPage() {
                           {entry.empresa.split('/')[1].trim()}
                         </span>
                       )}
+                      {/* Badge CNAE */}
+                      {(() => {
+                        const cnpj = extrairCnpj(entry.empresa || '');
+                        if (!cnpj) return null;
+                        const info = cnaeMap[cnpj];
+                        if (!info) return null;
+                        const cor = info.setor === 'cosmetico'
+                          ? 'bg-pink-50 dark:bg-pink-900/20 text-pink-600 dark:text-pink-400 border-pink-200 dark:border-pink-800'
+                          : info.setor === 'medicamento'
+                            ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 border-blue-200 dark:border-blue-800'
+                            : 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 border-slate-200 dark:border-slate-700';
+                        return (
+                          <span className={`inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-mono border ${cor}`}
+                            title={info.cnae_descricao}>
+                            CNAE {info.cnae_codigo}
+                          </span>
+                        );
+                      })()}
                     </div>
                   </div>
                   <div className="space-y-1">
