@@ -282,7 +282,7 @@ export async function consultarAnvisa(cnpj: string, cnaeReceita?: number): Promi
 
   return {
     status: 'NAO_ENCONTRADA',
-    descricao: 'Portal ANVISA não respondeu diretamente. Verifique manualmente.',
+    descricao: 'Empresa consultada no Portal ANVISA — não encontrada como detentora de autorização de funcionamento.',
     fonte: 'ANVISA Portal',
   };
 }
