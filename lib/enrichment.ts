@@ -873,8 +873,9 @@ export async function enriquecerFornecedor(
           descricao: `AFE/AE identificada via banco local: ${afe[0].tipo_autorizacao} ${afe[0].numero_autorizacao || ''}`,
           fonte: 'ANVISA AFE Local'
         };
-      } else if (receita?.cnae_fiscal) {
-         // Fallback de inferência caso o portal tenha falhado ou retornado vazio
+      } else if (receita?.cnae_fiscal && anvisaRes.status !== 'fulfilled') {
+         // Inferência por CNAE SOMENTE quando o portal ANVISA falhou/errou
+         // Se ANVISA respondeu NAO_ENCONTRADA explicitamente, respeitar esse resultado
          anvisa = await consultarAnvisa(cnpj, receita.cnae_fiscal);
       } else if (anvisaRes.status === 'fulfilled') {
         anvisa = anvisaRes.value;
