@@ -889,19 +889,9 @@ export async function enriquecerFornecedor(
     erros.push(`ANVISA Status: Falha na determinação de regularidade.`);
   }
 
-  // NOVA SEGURANÇA: Regex Reverso 
-  // Se mesmo as inferências do CNAE falharam (NAO_ENCONTRADA) mas o nome grita "Farmácia / Laboratório"
-  if (anvisa.status === 'NAO_ENCONTRADA' && receita?.razao_social) {
-    const isBeautyOrFarma = /(FARMA|LABORAT[OÓ]RIO|COSM[EÉ]TIC|QU[IÍ]MIC|BEAUTY|PHARMA|MEDICAMENT)/i.test(receita.razao_social);
-    if (isBeautyOrFarma) {
-      console.log(`[enriquecer] Forçando REGULAR por Regex Reverso para: ${receita.razao_social}`);
-      anvisa = {
-        status: 'REGULAR',
-        descricao: 'Status validado positivamente via análise de terminologia industrial da Razão Social.',
-        fonte: 'Compliance Lexical',
-      };
-    }
-  }
+  // Bloco "Compliance Lexical" removido: sobrescrever NAO_ENCONTRADA com base apenas
+  // no nome da empresa é incorreto — uma empresa pode ter "COSMÉTICOS" na razão social
+  // sem ter registro ativo na ANVISA. O portal ANVISA é a fonte de verdade.
 
   // 4. Processa resultado de Produtos ANVISA
   if (produtosRes.status === 'fulfilled') {
