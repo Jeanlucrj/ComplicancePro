@@ -1,6 +1,10 @@
 {
   "crons": [
     {
+      "path": "/api/cron/sync-afe",
+      "schedule": "0 8 * * 5"
+    },
+    {
       "path": "/api/anvisa/sync-opendata",
       "schedule": "0 10 * * 5"
     },

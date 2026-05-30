@@ -171,52 +171,6 @@ export function mapearSituacaoReceita(situacao: number): string {
  *    - CNAEs de cosméticos/farmacêuticos = "Regularidade inferida"
  *    - Outros = "Não verificado diretamente"
  */
-function buscarAfeNoCsvLocal(cnpjLimpo: string): AnvisaConsultaResult | null {
-  try {
-    const csvPath = path.join(process.cwd(), 'Arquivos CSV', 'TA_CONSULTA_FUNCIONAMENTO_EMPRESA_NACIONAL.CSV');
-    const content = fs.readFileSync(csvPath, 'latin1');
-    const lines = content.split('\n');
-    const header = lines[0].split(';');
-
-    const idxCnpj      = header.indexOf('NU_CNPJ');
-    const idxAtivo     = header.indexOf('ATIVO');
-    const idxTipo      = header.indexOf('TIPO_PRODUTO');
-    const idxNum       = header.indexOf('NU_AUTORIZACAO_NOVO');
-    const idxAtividades = header.indexOf('ATIVIDADES');
-
-    if (idxCnpj === -1 || idxAtivo === -1) return null;
-
-    for (let i = 1; i < lines.length; i++) {
-      const line = lines[i].trim();
-      if (!line) continue;
-      const cols = line.split(';');
-      const cnpjCol = (cols[idxCnpj] || '').replace(/["\s]/g, '');
-      if (cnpjCol !== cnpjLimpo) continue;
-
-      const ativo = (cols[idxAtivo] || '').replace(/"/g, '').trim().toUpperCase();
-      const tipo  = (cols[idxTipo]  || '').replace(/"/g, '').trim();
-      const num   = (cols[idxNum]   || '').replace(/"/g, '').trim();
-      const atividades = (cols[idxAtividades] || '').replace(/"/g, '').trim();
-
-      if (ativo === 'SIM') {
-        return {
-          status: 'REGULAR',
-          descricao: `Autorização ativa no CSV ANVISA: ${tipo}${num ? ' nº ' + num : ''}. ${atividades ? 'Atividades: ' + atividades : ''}`.trim(),
-          fonte: 'ANVISA',
-        };
-      } else {
-        return {
-          status: 'IRREGULAR',
-          descricao: `Autorização inativa na ANVISA: ${tipo}${num ? ' nº ' + num : ''}.`,
-          fonte: 'ANVISA',
-        };
-      }
-    }
-  } catch {
-    // CSV não encontrado ou ilegível — ignora silenciosamente
-  }
-  return null;
-}
 
 export async function consultarAnvisa(cnpj: string): Promise<AnvisaConsultaResult> {
   const cnpjLimpo = cnpj.replace(/\D/g, '');
@@ -303,13 +257,9 @@ export async function consultarAnvisa(cnpj: string): Promise<AnvisaConsultaResul
     console.error(`[consultarAnvisa] Falha na consulta ao portal:`, e);
   }
 
-  // 3. CSV local semanal — fonte de verdade quando portal está inacessível ou não encontrou
-  const csvResult = buscarAfeNoCsvLocal(cnpjLimpo);
-  if (csvResult) return csvResult;
-
   return {
     status: 'NAO_ENCONTRADA',
-    descricao: 'Empresa não encontrada no portal ANVISA nem no CSV de funcionamento baixado semanalmente.',
+    descricao: 'Empresa não encontrada no portal ANVISA.',
     fonte: 'ANVISA',
   };
 }
