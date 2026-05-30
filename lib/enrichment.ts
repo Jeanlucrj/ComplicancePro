@@ -487,30 +487,43 @@ function mapAnvisaCosmeticoContent(content: any[]): AnvisaProduct[] {
 }
 
 async function buscarCosmeticosRegularizadosAnvisaAPI(cnpjLimpo: string): Promise<AnvisaProduct[]> {
-  const url = `https://consultas.anvisa.gov.br/api/consulta/cosmeticos/regularizados?count=500&offset=0&filter%5Bcnpj%5D=${cnpjLimpo}`;
+  const cnpjMask = cnpjLimpo.replace(/^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/, '$1.$2.$3/$4-$5');
+  const base = 'https://consultas.anvisa.gov.br/api/consulta/cosmeticos/regularizados?count=500&offset=0';
+  // Testa múltiplos formatos de filtro — CNPJ com máscara tem prioridade
+  const urls = [
+    `${base}&filter%5Bcnpj%5D=${encodeURIComponent(cnpjMask)}`,
+    `${base}&filter%5BcnpjEmpresa%5D=${encodeURIComponent(cnpjMask)}`,
+    `${base}&filter%5Bempresa.cnpj%5D=${encodeURIComponent(cnpjMask)}`,
+    `${base}&filter%5Bcnpj%5D=${cnpjLimpo}`,
+    `${base}&filter%5BcnpjEmpresa%5D=${cnpjLimpo}`,
+  ];
   try {
     const sessionCookie = await getAnvisaSession();
-    const ctrl = new AbortController();
-    setTimeout(() => ctrl.abort(), 8000);
-    const res = await fetch(url, {
-      headers: {
-        'Authorization': 'Guest',
-        'Accept': 'application/json, text/plain, */*',
-        'Accept-Language': 'pt-BR,pt;q=0.9',
-        'Origin': 'https://consultas.anvisa.gov.br',
-        'Referer': 'https://consultas.anvisa.gov.br/',
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
-        ...(sessionCookie ? { 'Cookie': sessionCookie } : {}),
-      },
-      signal: ctrl.signal,
-    });
-    if (!res.ok) return [];
-    const data = await res.json();
-    return mapAnvisaCosmeticoContent(data.content || data.produtos || []);
+    const headers = {
+      'Authorization': 'Guest',
+      'Accept': 'application/json, text/plain, */*',
+      'Accept-Language': 'pt-BR,pt;q=0.9',
+      'Origin': 'https://consultas.anvisa.gov.br',
+      'Referer': 'https://consultas.anvisa.gov.br/',
+      'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
+      ...(sessionCookie ? { 'Cookie': sessionCookie } : {}),
+    };
+    for (const url of urls) {
+      try {
+        const ctrl = new AbortController();
+        setTimeout(() => ctrl.abort(), 8000);
+        const res = await fetch(url, { headers, signal: ctrl.signal });
+        if (!res.ok) { console.log(`[regularizados] ${url} → HTTP${res.status}`); continue; }
+        const data = await res.json();
+        const produtos = mapAnvisaCosmeticoContent(data.content || data.produtos || []);
+        console.log(`[regularizados] ${url} → ${produtos.length} produtos`);
+        if (produtos.length > 0) return produtos;
+      } catch { continue; }
+    }
   } catch (e) {
     console.error('[buscarCosmeticosRegularizadosAnvisaAPI] Erro:', e);
-    return [];
   }
+  return [];
 }
 
 /**
