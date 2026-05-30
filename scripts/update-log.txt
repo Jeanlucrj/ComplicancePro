@@ -78,4 +78,106 @@
 ✅ [anvisa_cosmeticos] Inserção confirmada: ID 69c8a77100071de17732
 ^C^C[02/05/2026  3:00:07,53] Iniciando Sincronizacao Diaria... 
 [02/05/2026  3:00:07,55] Atualizando CSVs locais... 
+^C[25/05/2026  7:30:11,31] Iniciando Sincronizacao Diaria... 
+[25/05/2026  7:30:11,34] Atualizando CSVs locais... 
+^C[26/05/2026  7:30:05,56] Iniciando Sincronizacao Diaria... 
+[26/05/2026  7:30:05,58] Atualizando CSVs locais... 
+^C[27/05/2026  7:30:08,65] Iniciando Sincronizacao Diaria... 
+[27/05/2026  7:30:08,68] Atualizando CSVs locais... 
+^C[28/05/2026  7:30:05,52] Iniciando Sincronizacao Diaria... 
+[28/05/2026  7:30:05,54] Atualizando CSVs locais... 
+╔══════════════════════════════════════════════════════╗
+║        BeautyProcure — Atualização de CSVs ANVISA    ║
+╚══════════════════════════════════════════════════════╝
+Início : 28/05/2026, 07:30:24
+Destino: c:\Users\User\.gemini\antigravity\scratch\BeautyProcure\tmp
+Log    : c:\Users\User\.gemini\antigravity\scratch\BeautyProcure\scripts\csv-update.log
+
+📦 Baixando Cosméticos Registrados (Grau 2)...
+   Fonte: https://dados.anvisa.gov.br/dados/TA_COSMETICOS.csv
+Fonte principal falhou: HTTP 404
+   🔄 Tentando fallback: https://dados.anvisa.gov.br/dados/DADOS_ABERTOS_COSMETICO.csv
+  ✅ 7.9 MB baixados                      
+   ✅ cosmeticos.csv (fallback) — 7.9 MB — 51.487 linhas
+
+🧴 Baixando Cosméticos Regularizados/Isentos (Grau 1)...
+   Testando: https://dados.anvisa.gov.br/dados/DADOS_ABERTOS_COSMETICO_REGULARIZADOS.csv
+   Testando: https://dados.anvisa.gov.br/dados/TA_COSMETICO_REGULARIZADOS.csv
+   Testando: https://dados.anvisa.gov.br/dados/TA_COSMETICOS_ISENTOS.csv
+   ℹ️  CSVs diretos não disponíveis. Tentando via CKAN API...
+CKAN package lookup falhou: Unexpected token '<', "<!DOCTYPE "... is not valid JSON
+Regularizados indisponíveis nesta execução. API em tempo real será usada como fallback.
+
+💊 Baixando Medicamentos Registrados...
+   Fonte: https://dados.anvisa.gov.br/dados/DADOS_ABERTOS_MEDICAMENTOS.csv
+  ✅ 7.9 MB baixados                      
+   ✅ medicamentos.csv — 7.9 MB — 43.138 linhas
+
+✅ Atualização concluída em 3s — 28/05/2026, 07:30:27
+
+📋 Estado dos arquivos:
+   cosmeticos.csv                            7.9 MB      51.487 linhas  (modificado há 0min)
+   cosmeticos_regularizados.csv           [não existe]
+   medicamentos.csv                          7.9 MB      43.138 linhas  (modificado há 0min)
+[dotenv@17.3.1] injecting env (9) from .env.local -- tip: ⚙️  suppress all logs with { quiet: true }
+
+=== Sync cosmetico → anvisa_cosmeticos ===
+Lendo CSV...
+  29754 linhas no CSV
+
+Fazendo upsert de 29752 registros em lotes de 500...
+  OK: 500 | Erros: 0  OK: 1000 | Erros: 0  OK: 1500 | Erros: 0  OK: 2000 | Erros: 0  OK: 2500 | Erros: 0  OK: 3000 | Erros: 0  OK: 3500 | Erros: 0  OK: 4000 | Erros: 0  OK: 4500 | Erros: 0  OK: 5000 | Erros: 0  OK: 5500 | Erros: 0  OK: 6000 | Erros: 0  OK: 6500 | Erros: 0  OK: 7000 | Erros: 0  OK: 7500 | Erros: 0  OK: 8000 | Erros: 0  OK: 8500 | Erros: 0  OK: 9000 | Erros: 0  OK: 9500 | Erros: 0  OK: 10000 | Erros: 0  OK: 10500 | Erros: 0  OK: 11000 | Erros: 0  OK: 11500 | Erros: 0  OK: 12000 | Erros: 0  OK: 12500 | Erros: 0  OK: 13000 | Erros: 0  OK: 13500 | Erros: 0  OK: 14000 | Erros: 0  OK: 14500 | Erros: 0  OK: 15000 | Erros: 0  OK: 15500 | Erros: 0  OK: 16000 | Erros: 0  OK: 16500 | Erros: 0  OK: 17000 | Erros: 0  OK: 17500 | Erros: 0  OK: 18000 | Erros: 0  OK: 18500 | Erros: 0  OK: 19000 | Erros: 0  OK: 19500 | Erros: 0  OK: 20000 | Erros: 0  OK: 20500 | Erros: 0  OK: 21000 | Erros: 0  OK: 21500 | Erros: 0  OK: 22000 | Erros: 0  OK: 22500 | Erros: 0  OK: 23000 | Erros: 0  OK: 23500 | Erros: 0  OK: 24000 | Erros: 0  OK: 24500 | Erros: 0  OK: 25000 | Erros: 0  OK: 25500 | Erros: 0  OK: 26000 | Erros: 0  OK: 26500 | Erros: 0  OK: 27000 | Erros: 0  OK: 27500 | Erros: 0  OK: 28000 | Erros: 0  OK: 28500 | Erros: 0  OK: 29000 | Erros: 0  OK: 29500 | Erros: 0  OK: 29752 | Erros: 0
+Sync cosmetico concluído! 29752 registros, 0 lotes com erro.
+[dotenv@17.3.1] injecting env (9) from .env.local -- tip: ⚡️ secrets for agents: https://dotenvx.com/as2
+
+=== Sync medicamento → anvisa_medicamentos ===
+Lendo CSV...
+  43042 linhas no CSV
+
+Fazendo upsert de 32449 registros em lotes de 500...
+  OK: 500 | Erros: 0  OK: 1000 | Erros: 0  OK: 1500 | Erros: 0  OK: 2000 | Erros: 0  OK: 2500 | Erros: 0  OK: 3000 | Erros: 0  OK: 3500 | Erros: 0  OK: 4000 | Erros: 0  OK: 4500 | Erros: 0  OK: 5000 | Erros: 0  OK: 5500 | Erros: 0  OK: 6000 | Erros: 0  OK: 6500 | Erros: 0  OK: 7000 | Erros: 0  OK: 7500 | Erros: 0  OK: 8000 | Erros: 0  OK: 8500 | Erros: 0  OK: 9000 | Erros: 0  OK: 9500 | Erros: 0  OK: 10000 | Erros: 0  OK: 10500 | Erros: 0  OK: 11000 | Erros: 0  OK: 11500 | Erros: 0  OK: 12000 | Erros: 0  OK: 12500 | Erros: 0  OK: 13000 | Erros: 0  OK: 13500 | Erros: 0  OK: 14000 | Erros: 0  OK: 14500 | Erros: 0  OK: 15000 | Erros: 0  OK: 15500 | Erros: 0  OK: 16000 | Erros: 0  OK: 16500 | Erros: 0  OK: 17000 | Erros: 0  OK: 17500 | Erros: 0  OK: 18000 | Erros: 0  OK: 18500 | Erros: 0  OK: 19000 | Erros: 0  OK: 19500 | Erros: 0  OK: 20000 | Erros: 0  OK: 20500 | Erros: 0  OK: 21000 | Erros: 0  OK: 21500 | Erros: 0  OK: 22000 | Erros: 0  OK: 22500 | Erros: 0  OK: 23000 | Erros: 0  OK: 23500 | Erros: 0  OK: 24000 | Erros: 0  OK: 24500 | Erros: 0  OK: 25000 | Erros: 0  OK: 25500 | Erros: 0  OK: 26000 | Erros: 0  OK: 26500 | Erros: 0  OK: 27000 | Erros: 0  OK: 27500 | Erros: 0  OK: 28000 | Erros: 0  OK: 28500 | Erros: 0  OK: 29000 | Erros: 0  OK: 29500 | Erros: 0  OK: 30000 | Erros: 0  OK: 30500 | Erros: 0  OK: 31000 | Erros: 0  OK: 31500 | Erros: 0  OK: 32000 | Erros: 0  OK: 32449 | Erros: 0
+Sync medicamento concluído! 32449 registros, 0 lotes com erro.
+
+node:internal/modules/run_main:123
+    triggerUncaughtException(
+    ^
+Error [ERR_MODULE_NOT_FOUND]: Cannot find module 'c:\Users\User\.gemini\antigravity\scratch\BeautyProcure\scripts\sync-isentos.ts' imported from c:\Users\User\.gemini\antigravity\scratch\BeautyProcure\
+    at finalizeResolution (node:internal/modules/esm/resolve:274:11)
+    at moduleResolve (node:internal/modules/esm/resolve:859:10)
+    at defaultResolve (node:internal/modules/esm/resolve:983:11)
+    at nextResolve (node:internal/modules/esm/hooks:748:28)
+    at resolveBase (file:///c:/Users/User/.gemini/antigravity/scratch/BeautyProcure/node_modules/tsx/dist/esm/index.mjs?1779964298125:2:3744)
+    at async resolveDirectory (file:///c:/Users/User/.gemini/antigravity/scratch/BeautyProcure/node_modules/tsx/dist/esm/index.mjs?1779964298125:2:4237)
+    at async resolve (file:///c:/Users/User/.gemini/antigravity/scratch/BeautyProcure/node_modules/tsx/dist/esm/index.mjs?1779964298125:2:5355)
+    at async nextResolve (node:internal/modules/esm/hooks:748:22)
+    at async Hooks.resolve (node:internal/modules/esm/hooks:240:24)
+    at async handleMessage (node:internal/modules/esm/worker:199:18) {
+  code: 'ERR_MODULE_NOT_FOUND',
+  url: 'file:///c:/Users/User/.gemini/antigravity/scratch/BeautyProcure/scripts/sync-isentos.ts'
+}
+
+Node.js v22.19.0
+
+node:internal/modules/run_main:123
+    triggerUncaughtException(
+    ^
+Error [ERR_MODULE_NOT_FOUND]: Cannot find module 'c:\Users\User\.gemini\antigravity\scratch\BeautyProcure\scripts\discover-dou.ts' imported from c:\Users\User\.gemini\antigravity\scratch\BeautyProcure\
+    at finalizeResolution (node:internal/modules/esm/resolve:274:11)
+    at moduleResolve (node:internal/modules/esm/resolve:859:10)
+    at defaultResolve (node:internal/modules/esm/resolve:983:11)
+    at nextResolve (node:internal/modules/esm/hooks:748:28)
+    at resolveBase (file:///c:/Users/User/.gemini/antigravity/scratch/BeautyProcure/node_modules/tsx/dist/esm/index.mjs?1779964303699:2:3744)
+    at async resolveDirectory (file:///c:/Users/User/.gemini/antigravity/scratch/BeautyProcure/node_modules/tsx/dist/esm/index.mjs?1779964303699:2:4237)
+    at async resolve (file:///c:/Users/User/.gemini/antigravity/scratch/BeautyProcure/node_modules/tsx/dist/esm/index.mjs?1779964303699:2:5355)
+    at async nextResolve (node:internal/modules/esm/hooks:748:22)
+    at async Hooks.resolve (node:internal/modules/esm/hooks:240:24)
+    at async handleMessage (node:internal/modules/esm/worker:199:18) {
+  code: 'ERR_MODULE_NOT_FOUND',
+  url: 'file:///c:/Users/User/.gemini/antigravity/scratch/BeautyProcure/scripts/discover-dou.ts'
+}
+
+Node.js v22.19.0
+[28/05/2026  7:31:44,00] Sincronizacao concluida. 
+[29/05/2026  7:30:13,81] Iniciando Sincronizacao Diaria... 
+[29/05/2026  7:30:13,88] Atualizando CSVs locais... 
 ^C

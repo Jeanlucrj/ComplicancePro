@@ -171,11 +171,77 @@ export function mapearSituacaoReceita(situacao: number): string {
  *    - CNAEs de cosméticos/farmacêuticos = "Regularidade inferida"
  *    - Outros = "Não verificado diretamente"
  */
-export async function consultarAnvisa(cnpj: string, cnaeReceita?: number): Promise<AnvisaConsultaResult> {
+function buscarAfeNoCsvLocal(cnpjLimpo: string): AnvisaConsultaResult | null {
+  try {
+    const csvPath = path.join(process.cwd(), 'Arquivos CSV', 'TA_CONSULTA_FUNCIONAMENTO_EMPRESA_NACIONAL.CSV');
+    const content = fs.readFileSync(csvPath, 'latin1');
+    const lines = content.split('\n');
+    const header = lines[0].split(';');
+
+    const idxCnpj      = header.indexOf('NU_CNPJ');
+    const idxAtivo     = header.indexOf('ATIVO');
+    const idxTipo      = header.indexOf('TIPO_PRODUTO');
+    const idxNum       = header.indexOf('NU_AUTORIZACAO_NOVO');
+    const idxAtividades = header.indexOf('ATIVIDADES');
+
+    if (idxCnpj === -1 || idxAtivo === -1) return null;
+
+    for (let i = 1; i < lines.length; i++) {
+      const line = lines[i].trim();
+      if (!line) continue;
+      const cols = line.split(';');
+      const cnpjCol = (cols[idxCnpj] || '').replace(/["\s]/g, '');
+      if (cnpjCol !== cnpjLimpo) continue;
+
+      const ativo = (cols[idxAtivo] || '').replace(/"/g, '').trim().toUpperCase();
+      const tipo  = (cols[idxTipo]  || '').replace(/"/g, '').trim();
+      const num   = (cols[idxNum]   || '').replace(/"/g, '').trim();
+      const atividades = (cols[idxAtividades] || '').replace(/"/g, '').trim();
+
+      if (ativo === 'SIM') {
+        return {
+          status: 'REGULAR',
+          descricao: `Autorização ativa no CSV ANVISA: ${tipo}${num ? ' nº ' + num : ''}. ${atividades ? 'Atividades: ' + atividades : ''}`.trim(),
+          fonte: 'ANVISA CSV Local',
+        };
+      } else {
+        return {
+          status: 'IRREGULAR',
+          descricao: `Autorização inativa no CSV ANVISA: ${tipo}${num ? ' nº ' + num : ''}.`,
+          fonte: 'ANVISA CSV Local',
+        };
+      }
+    }
+  } catch {
+    // CSV não encontrado ou ilegível — ignora silenciosamente
+  }
+  return null;
+}
+
+export async function consultarAnvisa(cnpj: string): Promise<AnvisaConsultaResult> {
   const cnpjLimpo = cnpj.replace(/\D/g, '');
 
-  // Estratégia 1: Tentar os endpoints reais do portal ANVISA em PARALELO
-  // As aspas e colchetes PRECISAM estar codificados no fetch do Node.js
+  // 1. Banco local Supabase (anvisa_afe sincronizado via script semanal)
+  try {
+    const { data: afeLocal } = await supabaseAdmin
+      .from('anvisa_afe')
+      .select('*')
+      .eq('cnpj', cnpjLimpo);
+
+    if (afeLocal && afeLocal.length > 0) {
+      const ativa = afeLocal.some((a: any) => a.situacao === 'Ativa');
+      const atividades = Array.from(new Set(afeLocal.map((a: any) => a.tipo_autorizacao))).join(' / ');
+      return {
+        status: ativa ? 'REGULAR' : 'IRREGULAR',
+        descricao: `Autorização ${atividades} encontrada no banco local: ${afeLocal[0].numero_autorizacao || 'Registrada'}`,
+        fonte: 'ANVISA AFE Local',
+      };
+    }
+  } catch {
+    // banco inacessível — segue para as próximas fontes
+  }
+
+  // 2. Portal ANVISA ao vivo
   const urlsToTry = [
     `https://consultas.anvisa.gov.br/api/empresa/funcionamento?filter%5Bcnpj%5D=${cnpjLimpo}`,
     `https://consultas.anvisa.gov.br/api/cosmetico/1/empresa/?count=5&offset=0&cnpj=${cnpjLimpo}`,
@@ -202,26 +268,9 @@ export async function consultarAnvisa(cnpj: string, cnaeReceita?: number): Promi
     );
     clearTimeout(anvisaTimeout);
 
-    // No novo fluxo, priorizamos a busca no banco local anvisa_afe para empresas de varejo/distribuição
-    const { data: afeLocal } = await supabaseAdmin
-      .from('anvisa_afe')
-      .select('*')
-      .eq('cnpj', cnpjLimpo);
-
-    if (afeLocal && afeLocal.length > 0) {
-      const ativa = afeLocal.some((a: any) => a.situacao === 'Ativa');
-      const atividades = Array.from(new Set(afeLocal.map((a: any) => a.tipo_autorizacao))).join(' / ');
-      return { 
-        status: ativa ? 'REGULAR' : 'IRREGULAR', 
-        descricao: `Autorização ${atividades} encontrada no banco local: ${afeLocal[0].numero_autorizacao || 'Registrada'}`, 
-        fonte: 'ANVISA AFE Local' 
-      };
-    }
-
     for (const data of responses) {
       if (!data) continue;
 
-      // O endpoint /api/cosmetico/1/empresa retorna 'empresaAutorizacao'
       const authCosmetico = data.empresaAutorizacao;
       if (authCosmetico && Array.isArray(authCosmetico) && authCosmetico.length > 0) {
         const ativa = authCosmetico.find((a: any) => a.ativa === true);
@@ -230,60 +279,37 @@ export async function consultarAnvisa(cnpj: string, cnaeReceita?: number): Promi
             .filter((a: any) => a.ativa === true)
             .map((a: any) => a.tipoProduto || a.tipoAutorizacao)
             .join(', ');
-          
-          return { 
-            status: 'REGULAR', 
-            descricao: `AFE Cosméticos Regular para: ${listaAtividades}`, 
-            fonte: 'ANVISA Portal' 
+          return {
+            status: 'REGULAR',
+            descricao: `AFE Cosméticos Regular para: ${listaAtividades}`,
+            fonte: 'ANVISA Portal',
           };
         }
       }
 
-      // O endpoint /api/empresa/funcionamento retorna 'content' 
-      // array de empresas que possuem AFE válida (sem booleano ativa diretamente no root)
       const content = data.content;
       if (content && Array.isArray(content) && content.length > 0) {
-        // Se a empresa foi listada aqui, possui autorização (AFE)
         const empresasFiltradas = content.filter((e: any) => e.cnpj === cnpjLimpo);
         const alvo = empresasFiltradas.length > 0 ? empresasFiltradas[0] : content[0];
-        
-        return { 
-          status: 'REGULAR', 
-          descricao: `AFE Regular: Autorização ${alvo.autorizacao || alvo.numeroAutorizacao || 'Registrada'}`, 
-          fonte: 'ANVISA Portal' 
+        return {
+          status: 'REGULAR',
+          descricao: `AFE Regular: Autorização ${alvo.autorizacao || alvo.numeroAutorizacao || 'Registrada'}`,
+          fonte: 'ANVISA Portal',
         };
       }
     }
   } catch (e) {
-    console.error(`[consultarAnvisa] Falha na consulta paralela:`, e);
+    console.error(`[consultarAnvisa] Falha na consulta ao portal:`, e);
   }
 
-  // Estratégia 2: Inferência inteligente baseada no CNAE e Palavras-Chave
-  const cnaesBeauty = [
-    2063100, 2061400, 2062200, 2110600, 2121101, 2121102, 2122000,
-    4644301, 4644302, 4645101, 4646001, 4646002, 4771701, 4771702, 4772500, 4713001,
-    9602501, 9602502,
-    7490104, 7490199 // Adicionado CNAEs genéricos técnicos que Holdings Farmacêuticas costumam usar (ex: Eurofarma)
-  ];
-
-  // Adicionamos inferência reversa: Se a string da empresa grita "Sou laboratório", nós passamos.
-  const keywordRegex = /(FARMA|LABORAT[OÓ]RIO|COSM[EÉ]TIC|QU[IÍ]MIC|BEAUTY|PHARMA|MEDICAMENT)/i;
-  
-  // Vamos buscar a Razão Social real se possível, mas como não temos 'receita' inteira recebida neste escopo, 
-  // nós apenas checamos a própria string CNAE ou passamos silenciosamente se o CNAE bater.
-  
-  if (cnaeReceita && cnaesBeauty.includes(Number(cnaeReceita))) {
-    return {
-      status: 'REGULAR',
-      descricao: `Status inferido: empresa possui CNAE validado no setor de cosméticos/farma (CNAE ${cnaeReceita}).`,
-      fonte: 'Inferência de Compliance',
-    };
-  }
+  // 3. CSV local semanal — fonte de verdade quando portal está inacessível ou não encontrou
+  const csvResult = buscarAfeNoCsvLocal(cnpjLimpo);
+  if (csvResult) return csvResult;
 
   return {
     status: 'NAO_ENCONTRADA',
-    descricao: 'Empresa consultada no Portal ANVISA — não encontrada como detentora de autorização de funcionamento.',
-    fonte: 'ANVISA Portal',
+    descricao: 'Empresa não encontrada no portal ANVISA nem no CSV de funcionamento baixado semanalmente.',
+    fonte: 'ANVISA Portal + CSV Local',
   };
 }
 
@@ -873,10 +899,10 @@ export async function enriquecerFornecedor(
           descricao: `AFE/AE identificada via banco local: ${afe[0].tipo_autorizacao} ${afe[0].numero_autorizacao || ''}`,
           fonte: 'ANVISA AFE Local'
         };
-      } else if (receita?.cnae_fiscal && anvisaRes.status !== 'fulfilled') {
-         // Inferência por CNAE SOMENTE quando o portal ANVISA falhou/errou
-         // Se ANVISA respondeu NAO_ENCONTRADA explicitamente, respeitar esse resultado
-         anvisa = await consultarAnvisa(cnpj, receita.cnae_fiscal);
+      } else if (receita?.cnae_fiscal && (anvisaRes.status !== 'fulfilled' || anvisaRes.value.status === 'ERRO')) {
+         // Inferência por CNAE quando portal falhou/errou ou estava inacessível (Cloudflare)
+         // NAO_ENCONTRADA explícita do portal é respeitada (não cai aqui)
+         anvisa = await consultarAnvisa(cnpj);
       } else if (anvisaRes.status === 'fulfilled') {
         anvisa = anvisaRes.value;
       }
