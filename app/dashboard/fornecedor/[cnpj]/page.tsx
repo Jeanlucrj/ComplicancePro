@@ -178,7 +178,7 @@ export default function FornecedorPage() {
         try {
           const rpDb = await fetch(
             `/api/anvisa/scrap-on-demand?cnpj=${cnpj}`,
-            { signal: AbortSignal.timeout(55000) }
+            { signal: AbortSignal.timeout(90000) }
           );
           const dataDb = await rpDb.json();
           if (dataDb.success && dataDb.anvisa_produtos?.length > 0) {
