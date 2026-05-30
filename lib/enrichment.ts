@@ -229,7 +229,8 @@ export async function consultarAnvisa(cnpj: string): Promise<AnvisaConsultaResul
       .eq('cnpj', cnpjLimpo);
 
     if (afeLocal && afeLocal.length > 0) {
-      const ativa = afeLocal.some((a: any) => a.situacao === 'Ativa');
+      const isAtiva = (s: string) => s === 'Ativa' || s === 'SIM' || s?.toUpperCase() === 'SIM';
+      const ativa = afeLocal.some((a: any) => isAtiva(a.situacao));
       const atividades = Array.from(new Set(afeLocal.map((a: any) => a.tipo_autorizacao))).join(' / ');
       return {
         status: ativa ? 'REGULAR' : 'IRREGULAR',
