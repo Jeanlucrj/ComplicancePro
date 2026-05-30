@@ -37,21 +37,23 @@ export async function GET(request: NextRequest) {
     });
     const page = await context.newPage();
 
-    // 1. Acessa a página principal para enganar o WAF (Cloudflare/F5) e obter o auth-token Guest
+    // 1. Acessa a página principal para contornar WAF e inicializar o Angular (gera o token de sessão)
     await page.goto('https://consultas.anvisa.gov.br/#/cosmeticos/regularizados/', {
       waitUntil: 'domcontentloaded',
-      timeout: 15000,
+      timeout: 20000,
     });
-    await page.waitForTimeout(1000);
+
+    // Espera o Angular carregar e persistir o token em sessionStorage (pode levar até 4s)
+    await page.waitForTimeout(3500);
 
     // 2. Extrai token de sessão
-
     const authHeaderRaw = await page.evaluate(() => {
       return sessionStorage.getItem('token') || 'Guest';
     });
     const authorization = authHeaderRaw === 'Guest' ? 'Guest' : `Bearer ${authHeaderRaw}`;
+    console.log(`[scrap-on-demand] Token: ${authHeaderRaw === 'Guest' ? 'Guest (sem sessão)' : 'Sessão ativa'}`);
 
-    // 3. URLs das APIs ANVISA — tenta múltiplos formatos de parâmetro para regularizados
+    // 3. URLs das APIs ANVISA — múltiplos formatos para regularizados e registrados
     const cnpjRaiz = cnpjLimpo.substring(0, 8);
     const base = 'https://consultas.anvisa.gov.br/api/consulta/cosmeticos';
     const urlsRegularizados = [
@@ -59,6 +61,7 @@ export async function GET(request: NextRequest) {
       `${base}/regularizados?count=500&offset=0&filter%5BcnpjEmpresa%5D=${cnpjLimpo}`,
       `${base}/regularizados?count=500&offset=0&filter%5Bempresa.cnpj%5D=${cnpjLimpo}`,
       `${base}/regularizados?count=500&offset=0&filter%5Bcnpj%5D=${cnpjRaiz}`,
+      `${base}/regularizados?count=500&offset=0&filter%5BnumeroEmpresa%5D=${cnpjLimpo}`,
     ];
     const urlsRegistrados = [
       `${base}/registrados?count=500&offset=0&filter%5Bcnpj%5D=${cnpjLimpo}`,
