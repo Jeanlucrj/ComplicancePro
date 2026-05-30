@@ -54,17 +54,26 @@ export async function GET(request: NextRequest) {
     console.log(`[scrap-on-demand] Token: ${authHeaderRaw === 'Guest' ? 'Guest (sem sessão)' : 'Sessão ativa'}`);
 
     // 3. URLs das APIs ANVISA — múltiplos formatos para regularizados e registrados
+    // O portal ANVISA usa o CNPJ formatado com máscara (ex: 14.053.642/0001-63)
     const cnpjRaiz = cnpjLimpo.substring(0, 8);
+    const cnpjFormatado = cnpjLimpo.replace(/^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/, '$1.$2.$3/$4-$5');
+    const cnpjFormatadoEnc = encodeURIComponent(cnpjFormatado);
     const base = 'https://consultas.anvisa.gov.br/api/consulta/cosmeticos';
     const urlsRegularizados = [
+      // CNPJ formatado com máscara (formato que o portal ANVISA usa internamente)
+      `${base}/regularizados?count=500&offset=0&filter%5Bcnpj%5D=${cnpjFormatadoEnc}`,
+      `${base}/regularizados?count=500&offset=0&filter%5BcnpjEmpresa%5D=${cnpjFormatadoEnc}`,
+      `${base}/regularizados?count=500&offset=0&filter%5Bempresa.cnpj%5D=${cnpjFormatadoEnc}`,
+      // CNPJ limpo (sem máscara)
       `${base}/regularizados?count=500&offset=0&filter%5Bcnpj%5D=${cnpjLimpo}`,
       `${base}/regularizados?count=500&offset=0&filter%5BcnpjEmpresa%5D=${cnpjLimpo}`,
       `${base}/regularizados?count=500&offset=0&filter%5Bempresa.cnpj%5D=${cnpjLimpo}`,
+      // Raiz do CNPJ (8 dígitos)
       `${base}/regularizados?count=500&offset=0&filter%5Bcnpj%5D=${cnpjRaiz}`,
-      `${base}/regularizados?count=500&offset=0&filter%5BnumeroEmpresa%5D=${cnpjLimpo}`,
     ];
     const urlsRegistrados = [
       `${base}/registrados?count=500&offset=0&filter%5Bcnpj%5D=${cnpjLimpo}`,
+      `${base}/registrados?count=500&offset=0&filter%5Bcnpj%5D=${cnpjFormatadoEnc}`,
       `${base}/registrados?count=500&offset=0&filter%5Bcnpj%5D=${cnpjRaiz}`,
     ];
 
@@ -76,10 +85,12 @@ export async function GET(request: NextRequest) {
       const fetchAnvisa = async (url: string) => {
         try {
           const res = await fetch(url, { headers: { Authorization: auth, Accept: 'application/json, text/plain, */*' } });
-          if (!res.ok) return { items: [], debug: res.status };
+          if (!res.ok) return { items: [], debug: `HTTP${res.status}` };
           const data = await res.json();
-          return { items: data.content || data.produtos || data.registros || data.items || [], debug: 'ok' };
-        } catch (e: any) { return { items: [], debug: e.message }; }
+          // Tenta todos os campos possíveis da resposta
+          const items = data.content || data.produtos || data.registros || data.items || data.lista || data.resultado || data.notificacoes || [];
+          return { items, debug: `ok(${items.length})`, rawKeys: Object.keys(data).join(',') };
+        } catch (e: any) { return { items: [], debug: e.message, rawKeys: '' }; }
       };
       const dedup = (arr: any[]) => {
         const seen = new Set<string>();
@@ -93,8 +104,8 @@ export async function GET(request: NextRequest) {
       const resResults = await Promise.all(urlsRes.map(fetchAnvisa));
       const regularizados = dedup(regResults.flatMap(r => r.items));
       const registrados   = dedup(resResults.flatMap(r => r.items));
-      const debugReg = regResults.map((r, i) => `URL${i}(${r.items.length}/${r.debug})`);
-      const debugRes = resResults.map((r, i) => `URL${i}(${r.items.length}/${r.debug})`);
+      const debugReg = regResults.map((r, i) => `URL${i}(${r.debug}|keys:${r.rawKeys})`);
+      const debugRes = resResults.map((r, i) => `URL${i}(${r.debug}|keys:${r.rawKeys})`);
       return { regularizados, registrados, debugReg, debugRes };
     }, evalArgs);
 
