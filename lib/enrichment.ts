@@ -202,13 +202,13 @@ function buscarAfeNoCsvLocal(cnpjLimpo: string): AnvisaConsultaResult | null {
         return {
           status: 'REGULAR',
           descricao: `Autorização ativa no CSV ANVISA: ${tipo}${num ? ' nº ' + num : ''}. ${atividades ? 'Atividades: ' + atividades : ''}`.trim(),
-          fonte: 'ANVISA CSV Local',
+          fonte: 'ANVISA',
         };
       } else {
         return {
           status: 'IRREGULAR',
-          descricao: `Autorização inativa no CSV ANVISA: ${tipo}${num ? ' nº ' + num : ''}.`,
-          fonte: 'ANVISA CSV Local',
+          descricao: `Autorização inativa na ANVISA: ${tipo}${num ? ' nº ' + num : ''}.`,
+          fonte: 'ANVISA',
         };
       }
     }
@@ -234,8 +234,8 @@ export async function consultarAnvisa(cnpj: string): Promise<AnvisaConsultaResul
       const atividades = Array.from(new Set(afeLocal.map((a: any) => a.tipo_autorizacao))).join(' / ');
       return {
         status: ativa ? 'REGULAR' : 'IRREGULAR',
-        descricao: `Autorização ${atividades} encontrada no banco local: ${afeLocal[0].numero_autorizacao || 'Registrada'}`,
-        fonte: 'ANVISA AFE Local',
+        descricao: `Autorização ${atividades} ativa na ANVISA: ${afeLocal[0].numero_autorizacao || 'Registrada'}`,
+        fonte: 'ANVISA',
       };
     }
   } catch {
@@ -310,7 +310,7 @@ export async function consultarAnvisa(cnpj: string): Promise<AnvisaConsultaResul
   return {
     status: 'NAO_ENCONTRADA',
     descricao: 'Empresa não encontrada no portal ANVISA nem no CSV de funcionamento baixado semanalmente.',
-    fonte: 'ANVISA Portal + CSV Local',
+    fonte: 'ANVISA',
   };
 }
 
@@ -897,8 +897,8 @@ export async function enriquecerFornecedor(
         const ativa = afe.some((a: any) => a.situacao === 'Ativa');
         anvisa = {
           status: ativa ? 'REGULAR' : 'IRREGULAR',
-          descricao: `AFE/AE identificada via banco local: ${afe[0].tipo_autorizacao} ${afe[0].numero_autorizacao || ''}`,
-          fonte: 'ANVISA AFE Local'
+          descricao: `Autorização ${afe[0].tipo_autorizacao} ativa na ANVISA: ${afe[0].numero_autorizacao || 'Registrada'}`,
+          fonte: 'ANVISA'
         };
       } else if (receita?.cnae_fiscal && (anvisaRes.status !== 'fulfilled' || anvisaRes.value.status === 'ERRO')) {
          // Inferência por CNAE quando portal falhou/errou ou estava inacessível (Cloudflare)
