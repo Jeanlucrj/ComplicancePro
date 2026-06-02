@@ -31,7 +31,7 @@ const PLANOS: PlanoConfig[] = [
   {
     id:      'pro',
     nome:    'Pro',
-    preco:   'R$ 49,90',
+    preco:   'R$ 147,00',
     periodo: '/mês',
     destaque: false,
     recursos: [
@@ -45,7 +45,7 @@ const PLANOS: PlanoConfig[] = [
   {
     id:      'enterprise',
     nome:    'Enterprise',
-    preco:   'R$ 149,90',
+    preco:   'R$ 497,00',
     periodo: '/mês',
     destaque: true,
     recursos: [
