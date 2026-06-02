@@ -89,7 +89,7 @@ function CheckoutContent() {
     try {
       const res  = await fetch(`/api/checkout/status?chargeId=${chargeId}&userId=${userId}`);
       const data = await res.json();
-      if (data?.pago) { setPago(true); setEtapa('sucesso'); }
+      if (data?.pago) { setPago(true); setEtapa('sucesso'); setTimeout(() => { window.location.href = '/dashboard/perfil?novo=true'; }, 2500); }
     } catch { /* silencioso */ }
   }, [userId]);
 
@@ -171,10 +171,9 @@ function CheckoutContent() {
         <div className="bg-slate-900 border border-emerald-500/30 rounded-2xl p-10 text-center max-w-sm w-full">
           <CheckCircle className="h-16 w-16 text-emerald-400 mx-auto mb-4" />
           <h1 className="text-2xl font-bold text-white mb-2">Pagamento Confirmado!</h1>
-          <p className="text-slate-400 mb-6">Seu plano <strong className="text-white">{plano.nome}</strong> foi ativado.</p>
-          <a href="/dashboard" className="block w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 rounded-xl transition">
-            Ir para o Dashboard
-          </a>
+          <p className="text-slate-400 mb-2">Seu plano <strong className="text-white">{plano.nome}</strong> foi ativado.</p>
+          <p className="text-slate-500 text-sm mb-6">Redirecionando para completar seu perfil...</p>
+          <div className="w-6 h-6 border-2 border-emerald-400 border-t-transparent rounded-full animate-spin mx-auto" />
         </div>
       </div>
     );

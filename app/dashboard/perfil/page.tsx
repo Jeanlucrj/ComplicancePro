@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, useEffect, Suspense } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import {
   Building2, User, Mail, MapPin, Briefcase, ShieldCheck,
   Loader2, Calendar, Phone, ArrowLeft, Pencil, Check, X, Bell,
@@ -17,7 +17,7 @@ function labelSetor(tipo: string | undefined | null) {
   return 'Não definido';
 }
 
-export default function PerfilPage() {
+function PerfilContent() {
   const [user, setUser] = useState<any>(null);
   const [profile, setProfile] = useState<Fornecedor | null>(null);
   const [loading, setLoading] = useState(true);
@@ -41,6 +41,8 @@ export default function PerfilPage() {
   const [togglingAlertas, setTogglingAlertas] = useState(false);
 
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const isNovo = searchParams.get('novo') === 'true';
 
   useEffect(() => {
     const fetchData = async () => {
@@ -185,6 +187,20 @@ export default function PerfilPage() {
 
   return (
     <div className="p-8 max-w-5xl mx-auto space-y-8">
+
+      {/* Banner de boas-vindas pós-checkout */}
+      {isNovo && (
+        <div className="bg-emerald-500/10 border border-emerald-500/30 rounded-2xl p-5 flex items-start gap-4">
+          <div className="text-3xl">🎉</div>
+          <div>
+            <p className="font-bold text-emerald-400 text-lg">Bem-vindo ao CompliancePro!</p>
+            <p className="text-slate-300 text-sm mt-1">
+              Seu pagamento foi confirmado e seu acesso está ativo. Agora <strong>complete os dados da sua empresa</strong> abaixo — isso é essencial para configurar seus alertas ANVISA e WhatsApp corretamente.
+            </p>
+          </div>
+        </div>
+      )}
+
       {/* Header */}
       <div className="flex items-center space-x-4">
         <Link
@@ -413,5 +429,13 @@ export default function PerfilPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function PerfilPage() {
+  return (
+    <Suspense fallback={null}>
+      <PerfilContent />
+    </Suspense>
   );
 }
