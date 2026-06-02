@@ -160,26 +160,35 @@ export async function GET(request: NextRequest) {
           .eq('user_id', userId || '')
           .limit(1);
 
+        const dadosFornecedor = {
+          cnpj: cnpjLimpo,
+          user_id: userId,
+          razao_social: r.razao_social,
+          nome_fantasia: r.nome_fantasia || r.razao_social,
+          situacao_receita: mapearSituacaoReceita(r.situacao_cadastral),
+          status_anvisa: resultado.anvisa.status === 'REGULAR' ? 'REGULAR' : resultado.anvisa.status === 'NAO_ENCONTRADA' ? 'NAO_CADASTRADA' : 'IRREGULAR',
+          estado: r.uf,
+          cidade: r.municipio,
+          cep: r.cep,
+          endereco: `${r.logradouro || ''}, ${r.numero || ''}`.trim(),
+          data_abertura: r.data_inicio_atividade,
+          email: r.email || undefined,
+          telefone: r.ddd_telefone_1 || undefined,
+        };
+
         if (fornecedores && fornecedores.length > 0) {
-          const docId = fornecedores[0].id;
-          await supabaseAdmin.from('fornecedores').update({
-            razao_social: r.razao_social,
-            nome_fantasia: r.nome_fantasia || r.razao_social,
-            situacao_receita: mapearSituacaoReceita(r.situacao_cadastral),
-            status_anvisa: resultado.anvisa.status === 'REGULAR' ? 'REGULAR' : resultado.anvisa.status === 'NAO_ENCONTRADA' ? 'NAO_CADASTRADA' : 'IRREGULAR',
-            estado: r.uf,
-            cidade: r.municipio,
-            cep: r.cep,
-            endereco: `${r.logradouro || ''}, ${r.numero || ''}`.trim(),
-            data_abertura: r.data_inicio_atividade,
-            email: r.email || undefined,
-            telefone: r.ddd_telefone_1 || undefined,
-          }).eq('id', docId);
-          resposta.salvo_no_banco = true;
-          console.log(`[enriquecer] Fornecedor ${cnpjLimpo} atualizado no banco.`);
+          await supabaseAdmin.from('fornecedores').update(dadosFornecedor).eq('id', fornecedores[0].id);
+          console.log(`[enriquecer] Fornecedor ${cnpjLimpo} atualizado.`);
         } else {
-          resposta.erros.push('Fornecedor não encontrado no banco para atualização.');
+          // Cria novo fornecedor com is_perfil=true (vinculação de empresa própria)
+          await supabaseAdmin.from('fornecedores').insert({
+            ...dadosFornecedor,
+            is_perfil: true,
+            tipo_anvisa: resposta.setor_detectado || 'cosmetico',
+          });
+          console.log(`[enriquecer] Fornecedor ${cnpjLimpo} criado como perfil.`);
         }
+        resposta.salvo_no_banco = true;
       } catch (dbErr: any) {
         resposta.erros.push(`Erro ao salvar no banco: ${dbErr.message}`);
       }
