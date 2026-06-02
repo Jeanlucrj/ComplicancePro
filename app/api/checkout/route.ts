@@ -47,25 +47,22 @@ export async function POST(request: NextRequest) {
     const planoConfig = PLANOS[plano];
 
     // 3. Chama a API da AbacatePay para criar a cobrança Pix transparente
-    // Payload conforme AbacatePay v2 — /transparents/create
+    // Payload correto AbacatePay v2 — método no topo, dados aninhados em "data"
     const abacatePayload = {
-      amount:      planoConfig.valor_centavos,  // em centavos
-      description: planoConfig.nome,
-      method:      'PIX',                        // string, não array
-      customer: {
-        name:      user.user_metadata?.nome || user.email?.split('@')[0] || 'Cliente',
-        email:     user.email || '',
-        cellphone: user.user_metadata?.telefone || '11999999999', // obrigatório na v2
-        taxId:     user.user_metadata?.cpf      || '00000000000', // CPF do cliente
-      },
-      products: [
-        {
-          externalId: plano,
-          name:       planoConfig.nome,
-          quantity:   1,
-          price:      planoConfig.valor_centavos,
+      method: 'PIX',
+      data: {
+        amount:      planoConfig.valor_centavos,
+        description: planoConfig.nome,
+        externalId:  `${userId}-${plano}-${Date.now()}`,
+        expiresIn:   1800, // 30 minutos
+        customer: {
+          name:      user.user_metadata?.nome || user.email?.split('@')[0] || 'Cliente',
+          email:     user.email || '',
+          cellphone: user.user_metadata?.telefone || '11999999999',
+          taxId:     user.user_metadata?.cpf      || '00000000000',
         },
-      ],
+        metadata: { userId, plano },
+      },
     };
     console.log('[checkout] Payload enviado:', JSON.stringify(abacatePayload));
 
@@ -96,10 +93,12 @@ export async function POST(request: NextRequest) {
     console.log('[checkout] AbacatePay data:', JSON.stringify(abacateData));
 
     // 4. Extrai QR Code e código copia-e-cola — cobre múltiplas estruturas possíveis da API
+    // Resposta AbacatePay v2: brCodeBase64 = QR Code, brCode = copia-e-cola
     const d = abacateData?.data || abacateData;
-    const pixQrCodeBase64 = d?.pixQrCode  || d?.qrCode    || d?.qr_code    || d?.brCode    || '';
-    const pixCopiaCola    = d?.copyPaste  || d?.pixCopiaECola || d?.copia_e_cola || d?.emv || d?.payload || '';
-    const chargeId        = d?.id         || d?.chargeId  || d?.transactionId || '';
+    console.log('[checkout] Campos resposta:', Object.keys(d || {}));
+    const pixQrCodeBase64 = (d?.brCodeBase64 || '').replace(/^data:image\/png;base64,/, '');
+    const pixCopiaCola    = d?.brCode || '';
+    const chargeId        = d?.id     || '';
 
     // 5. Salva a cobrança pendente no Supabase
     const { error: dbError } = await supabaseAdmin.from('assinaturas').insert({
