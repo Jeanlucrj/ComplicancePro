@@ -40,6 +40,11 @@ function PerfilContent() {
   const [whatsappAlertas, setWhatsappAlertas] = useState(false);
   const [togglingAlertas, setTogglingAlertas] = useState(false);
 
+  // Vincular CNPJ (novo usuário sem empresa)
+  const [cnpjInput,      setCnpjInput]      = useState('');
+  const [vinculando,     setVinculando]     = useState(false);
+  const [erroVincular,   setErroVincular]   = useState('');
+
   const router = useRouter();
   const searchParams = useSearchParams();
   const isNovo = searchParams.get('novo') === 'true';
@@ -255,15 +260,57 @@ function PerfilContent() {
             </div>
 
             {!profile ? (
-              <div className="text-center py-12 space-y-4">
-                <Building2 className="h-12 w-12 text-slate-300 mx-auto" />
-                <p className="text-slate-500">Nenhum dado empresarial vinculado.</p>
-                <Link
-                  href="/dashboard"
-                  className="inline-block bg-blue-600 text-white px-6 py-2 rounded-xl font-bold text-sm"
-                >
-                  Vincular Empresa
-                </Link>
+              <div className="space-y-5 py-4">
+                <div className="flex items-center gap-3 text-slate-400 mb-2">
+                  <Building2 className="h-5 w-5" />
+                  <p className="text-sm">Informe o CNPJ da sua empresa para vincular os dados automaticamente.</p>
+                </div>
+                {erroVincular && (
+                  <p className="text-red-400 text-sm bg-red-900/20 border border-red-500/30 rounded-xl px-4 py-2">{erroVincular}</p>
+                )}
+                <div className="flex gap-3">
+                  <input
+                    type="text"
+                    value={cnpjInput}
+                    onChange={e => {
+                      let v = e.target.value.replace(/\D/g, '').slice(0, 14);
+                      v = v.replace(/^(\d{2})(\d)/, '$1.$2')
+                           .replace(/^(\d{2})\.(\d{3})(\d)/, '$1.$2.$3')
+                           .replace(/\.(\d{3})(\d)/, '.$1/$2')
+                           .replace(/(\d{4})(\d)/, '$1-$2');
+                      setCnpjInput(v);
+                      setErroVincular('');
+                    }}
+                    placeholder="00.000.000/0001-00"
+                    className="flex-1 bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-white placeholder-slate-500 text-sm focus:outline-none focus:border-blue-500"
+                  />
+                  <button
+                    disabled={vinculando || cnpjInput.replace(/\D/g,'').length < 14}
+                    onClick={async () => {
+                      setVinculando(true);
+                      setErroVincular('');
+                      try {
+                        const cnpjLimpo = cnpjInput.replace(/\D/g,'');
+                        const res = await fetch(`/api/enriquecer?cnpj=${cnpjLimpo}&salvar=true&userId=${user.$id}`);
+                        const data = await res.json();
+                        if (!res.ok) { setErroVincular(data.error || 'Erro ao buscar CNPJ.'); return; }
+                        // Recarrega o perfil
+                        const res2 = await fetch(`/api/fornecedores?userId=${user.$id}&onlyPerfil=true`);
+                        if (res2.ok) {
+                          const d2 = await res2.json();
+                          if (d2.fornecedores?.length > 0) setProfile(d2.fornecedores[0]);
+                          else setErroVincular('CNPJ vinculado! Recarregue a página.');
+                        }
+                      } catch { setErroVincular('Erro de conexão. Tente novamente.'); }
+                      finally { setVinculando(false); }
+                    }}
+                    className="px-6 py-3 bg-blue-600 hover:bg-blue-500 disabled:opacity-40 text-white font-bold rounded-xl text-sm transition flex items-center gap-2"
+                  >
+                    {vinculando ? <Loader2 className="h-4 w-4 animate-spin" /> : <Building2 className="h-4 w-4" />}
+                    {vinculando ? 'Buscando...' : 'Vincular'}
+                  </button>
+                </div>
+                <p className="text-xs text-slate-600">Os dados são buscados automaticamente na Receita Federal.</p>
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-8">
