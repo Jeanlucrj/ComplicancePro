@@ -47,23 +47,27 @@ export async function POST(request: NextRequest) {
     const planoConfig = PLANOS[plano];
 
     // 3. Chama a API da AbacatePay para criar a cobrança Pix transparente
+    // Payload conforme AbacatePay v2 — /transparents/create
     const abacatePayload = {
-      amount: planoConfig.valor_centavos,
+      amount:      planoConfig.valor_centavos,  // em centavos
       description: planoConfig.nome,
-      methods: ['PIX'],
+      method:      'PIX',                        // string, não array
       customer: {
-        name:  user.user_metadata?.nome || user.email?.split('@')[0] || 'Cliente',
-        email: user.email || '',
-        // Adicione CPF/CNPJ do user_metadata se disponível
-        // taxId: user.user_metadata?.cpf || '',
+        name:      user.user_metadata?.nome || user.email?.split('@')[0] || 'Cliente',
+        email:     user.email || '',
+        cellphone: user.user_metadata?.telefone || '11999999999', // obrigatório na v2
+        taxId:     user.user_metadata?.cpf      || '00000000000', // CPF do cliente
       },
-      // Expira em 30 minutos
-      expiresIn: 1800,
-      metadata: {
-        user_id: userId,
-        plano,
-      },
+      products: [
+        {
+          externalId: planoParam,
+          name:       planoConfig.nome,
+          quantity:   1,
+          price:      planoConfig.valor_centavos,
+        },
+      ],
     };
+    console.log('[checkout] Payload enviado:', JSON.stringify(abacatePayload));
 
     const abacateRes = await fetch(`${ABACATEPAY_BASE_URL}/transparents/create`, {
       method: 'POST',
