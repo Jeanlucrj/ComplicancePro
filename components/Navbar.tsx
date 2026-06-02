@@ -49,11 +49,11 @@ export default function Navbar() {
             >
               Login
             </Link>
-            <Link 
-              href="/signup"
+            <Link
+              href="/checkout"
               className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-medium shadow-lg shadow-blue-500/20"
             >
-              Testar Grátis
+              Assinar
             </Link>
           </div>
         </div>
