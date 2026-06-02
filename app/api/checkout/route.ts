@@ -60,7 +60,7 @@ export async function POST(request: NextRequest) {
       },
       products: [
         {
-          externalId: planoParam,
+          externalId: plano,
           name:       planoConfig.nome,
           quantity:   1,
           price:      planoConfig.valor_centavos,
