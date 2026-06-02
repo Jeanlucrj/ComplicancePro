@@ -226,7 +226,7 @@ function CheckoutContent() {
                 Identificação
               </span>
               <div className="flex-1 h-px bg-slate-800" />
-              <span className={`flex items-center gap-1 font-semibold ${etapa === 'pagamento' ? 'text-purple-400' : etapa === 'sucesso' ? 'text-emerald-400' : 'text-slate-600'}`}>
+              <span className={`flex items-center gap-1 font-semibold ${etapa === 'pagamento' ? 'text-purple-400' : 'text-slate-600'}`}>
                 <span className="w-4 h-4 rounded-full border-2 border-current inline-flex items-center justify-center text-[10px]">2</span>
                 Pagamento
               </span>
