@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { CheckCircle, Copy, RefreshCw, Shield, Zap, Clock } from 'lucide-react';
@@ -60,7 +60,7 @@ const PLANOS: PlanoConfig[] = [
 ];
 
 // ─── Componente Principal ─────────────────────────────────────────────────────
-export default function CheckoutPage() {
+function CheckoutContent() {
   const searchParams = useSearchParams();
   const planoParam   = (searchParams.get('plano') || 'pro') as Plano;
 
@@ -361,5 +361,13 @@ export default function CheckoutPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function CheckoutPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-slate-950 flex items-center justify-center"><div className="w-8 h-8 border-4 border-purple-600 border-t-transparent rounded-full animate-spin" /></div>}>
+      <CheckoutContent />
+    </Suspense>
   );
 }
