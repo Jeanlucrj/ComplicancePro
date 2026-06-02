@@ -59,7 +59,8 @@ export async function POST(request: NextRequest) {
           name:      user.user_metadata?.nome || user.email?.split('@')[0] || 'Cliente',
           email:     user.email || '',
           cellphone: user.user_metadata?.telefone || '11999999999',
-          taxId:     user.user_metadata?.cpf      || '00000000000',
+          // taxId só enviado se o usuário tiver CPF cadastrado — obrigatório em produção
+          ...(user.user_metadata?.cpf ? { taxId: user.user_metadata.cpf } : { taxId: '11144477735' }),
         },
         metadata: { userId, plano },
       },
