@@ -295,12 +295,7 @@ function PerfilContent() {
                         const data = await res.json();
                         if (!res.ok) { setErroVincular(data.error || 'Erro ao buscar CNPJ.'); return; }
                         // Recarrega o perfil
-                        const res2 = await fetch(`/api/fornecedores?userId=${user.$id}&onlyPerfil=true`);
-                        if (res2.ok) {
-                          const d2 = await res2.json();
-                          if (d2.fornecedores?.length > 0) setProfile(d2.fornecedores[0]);
-                          else setErroVincular('CNPJ vinculado! Recarregue a página.');
-                        }
+                        window.location.reload();
                       } catch { setErroVincular('Erro de conexão. Tente novamente.'); }
                       finally { setVinculando(false); }
                     }}
