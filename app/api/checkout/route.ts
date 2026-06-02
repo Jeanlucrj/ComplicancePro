@@ -74,22 +74,28 @@ export async function POST(request: NextRequest) {
       body: JSON.stringify(abacatePayload),
     });
 
+    const rawText = await abacateRes.text();
+    console.log('[checkout] AbacatePay status:', abacateRes.status);
+    console.log('[checkout] AbacatePay response raw:', rawText);
+
     if (!abacateRes.ok) {
-      const errText = await abacateRes.text();
-      console.error('[checkout] AbacatePay erro:', abacateRes.status, errText);
+      console.error('[checkout] AbacatePay erro:', abacateRes.status, rawText);
+      // Retorna o erro real da AbacatePay para facilitar debug
       return NextResponse.json(
-        { error: 'Falha ao gerar cobrança Pix. Tente novamente.' },
+        { error: `AbacatePay: HTTP ${abacateRes.status} — ${rawText.substring(0, 200)}` },
         { status: 502 }
       );
     }
 
-    const abacateData = await abacateRes.json();
+    const abacateData = JSON.parse(rawText);
+    console.log('[checkout] AbacatePay data keys:', Object.keys(abacateData));
+    console.log('[checkout] AbacatePay data:', JSON.stringify(abacateData));
 
-    // 4. Extrai QR Code e código copia-e-cola da resposta
-    // Ajuste os campos conforme o contrato real da API AbacatePay v2
-    const pixQrCodeBase64 = abacateData?.pixQrCode   || abacateData?.qrCode    || abacateData?.data?.qrCode    || '';
-    const pixCopiaCola    = abacateData?.pixCopyPaste || abacateData?.copyPaste || abacateData?.data?.copyPaste || '';
-    const chargeId        = abacateData?.id           || abacateData?.data?.id  || '';
+    // 4. Extrai QR Code e código copia-e-cola — cobre múltiplas estruturas possíveis da API
+    const d = abacateData?.data || abacateData;
+    const pixQrCodeBase64 = d?.pixQrCode  || d?.qrCode    || d?.qr_code    || d?.brCode    || '';
+    const pixCopiaCola    = d?.copyPaste  || d?.pixCopiaECola || d?.copia_e_cola || d?.emv || d?.payload || '';
+    const chargeId        = d?.id         || d?.chargeId  || d?.transactionId || '';
 
     // 5. Salva a cobrança pendente no Supabase
     const { error: dbError } = await supabaseAdmin.from('assinaturas').insert({
