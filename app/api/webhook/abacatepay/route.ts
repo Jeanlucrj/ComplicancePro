@@ -32,10 +32,11 @@ export async function POST(request: NextRequest) {
     const chargeId = charge?.id || body?.id || '';
 
     // 3. Só processa eventos de pagamento confirmado
-    const isPago = event === 'PAYMENT_CONFIRMED'
-      || event === 'charge.paid'
+    const isPago = event === 'transparent.completed'
+      || event === 'checkout.completed'
+      || event === 'subscription.completed'
+      || event === 'PAYMENT_CONFIRMED'
       || status === 'PAID'
-      || status === 'CONCLUIDO'
       || status === 'COMPLETED';
 
     if (!isPago) {
