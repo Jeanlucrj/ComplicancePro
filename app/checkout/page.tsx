@@ -361,6 +361,22 @@ function CheckoutContent() {
 
                     <p className="text-xs text-slate-500 text-center">Abra o app do banco → Pix → Copia e Cola ou QR Code. Acesso liberado automaticamente.</p>
 
+                    {/* Botão de teste — só aparece em devMode (chave abc_dev_) */}
+                    {checkout.chargeId && (
+                      <button
+                        onClick={async () => {
+                          await fetch('/api/checkout/simulate', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ chargeId: checkout.chargeId }),
+                          });
+                        }}
+                        className="w-full py-2 bg-yellow-500/10 border border-yellow-500/30 text-yellow-400 hover:bg-yellow-500/20 text-xs font-semibold rounded-xl transition"
+                      >
+                        🧪 Simular pagamento (Dev Mode)
+                      </button>
+                    )}
+
                     <button onClick={() => { setCheckout(null); setErroPix(''); }} className="w-full py-2 text-slate-500 hover:text-white text-xs transition flex items-center justify-center gap-1">
                       <RefreshCw className="h-3 w-3" /> Gerar novo Pix
                     </button>
