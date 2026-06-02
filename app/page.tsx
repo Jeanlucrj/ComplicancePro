@@ -118,8 +118,8 @@ const faqs = [
     a: 'O plano Enterprise inclui acesso à API REST para integração com ERPs, sistemas de compras e qualquer software da sua operação.',
   },
   {
-    q: 'O teste grátis tem limitações?',
-    a: 'O teste de 14 dias dá acesso completo ao plano Pro, sem cartão de crédito. Após o período, você escolhe o plano que melhor atende sua operação.',
+    q: 'Como funciona o pagamento?',
+    a: 'O pagamento é feito via Pix, de forma instantânea e 100% dentro da plataforma. Após a confirmação, o acesso é liberado automaticamente.',
   },
 ];
 
@@ -157,7 +157,7 @@ export default function Home() {
                 href="/dashboard"
                 className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition font-bold text-lg shadow-lg shadow-blue-500/25 active:scale-95"
               >
-                Começar Grátis <ArrowRight className="h-5 w-5" />
+                Assinar via Pix <ArrowRight className="h-5 w-5" />
               </Link>
               <button className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 border-2 border-slate-200 dark:border-slate-700 rounded-xl hover:border-blue-400 dark:hover:border-blue-600 transition font-bold text-lg">
                 Ver Demonstração
@@ -165,7 +165,7 @@ export default function Home() {
             </div>
 
             <p className="text-sm text-slate-500 dark:text-slate-500">
-              ✓ 14 dias grátis &nbsp;·&nbsp; ✓ Sem cartão de crédito &nbsp;·&nbsp; ✓ Cancele quando quiser
+              ✓ Pagamento via Pix &nbsp;·&nbsp; ✓ Acesso imediato &nbsp;·&nbsp; ✓ Cancele quando quiser
             </p>
           </div>
         </div>
@@ -359,7 +359,7 @@ export default function Home() {
               Planos para todos os tamanhos
             </h2>
             <p className="text-xl text-slate-600 dark:text-slate-400">
-              Comece grátis por 14 dias. Sem cartão de crédito.
+              Pagamento via Pix, acesso imediato após confirmação.
             </p>
           </div>
           <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
@@ -417,19 +417,19 @@ export default function Home() {
       <section className="py-20 bg-blue-600">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h2 className="text-4xl md:text-5xl font-extrabold text-white mb-4">
-            Comece hoje. É grátis.
+            Comece hoje. Pague via Pix.
           </h2>
           <p className="text-xl text-blue-100 mb-10 max-w-xl mx-auto">
             Mais de 500 empresas já usam o Data Control para tomar decisões de compra com segurança e velocidade.
           </p>
           <Link
-            href="/signup"
+            href="/checkout"
             className="inline-flex items-center gap-2 px-10 py-4 bg-white text-blue-700 rounded-xl font-extrabold text-lg hover:bg-blue-50 transition shadow-xl active:scale-95"
           >
-            Criar conta grátis <ArrowRight className="h-5 w-5" />
+            Assinar agora <ArrowRight className="h-5 w-5" />
           </Link>
           <p className="mt-6 text-blue-200 text-sm">
-            ✓ 14 dias grátis &nbsp;·&nbsp; ✓ Sem cartão de crédito &nbsp;·&nbsp; ✓ Cancele quando quiser
+            ✓ Pagamento via Pix &nbsp;·&nbsp; ✓ Acesso imediato &nbsp;·&nbsp; ✓ Cancele quando quiser
           </p>
         </div>
       </section>
