@@ -380,8 +380,8 @@ export default function Home() {
                   </li>
                 ))}
               </ul>
-              <Link href="/signup" className="block w-full py-3 text-center bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition font-bold">
-                Começar Teste Grátis
+              <Link href="/checkout?plano=pro" className="block w-full py-3 text-center bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition font-bold">
+                Assinar via Pix — R$ 147/mês
               </Link>
             </div>
 
@@ -404,9 +404,9 @@ export default function Home() {
                   </li>
                 ))}
               </ul>
-              <button className="w-full py-3 bg-white text-blue-700 rounded-xl hover:bg-blue-50 transition font-bold">
-                Falar com Vendas
-              </button>
+              <Link href="/checkout?plano=enterprise" className="block w-full py-3 text-center bg-white text-blue-700 rounded-xl hover:bg-blue-50 transition font-bold">
+                Assinar via Pix — R$ 497/mês
+              </Link>
             </div>
 
           </div>

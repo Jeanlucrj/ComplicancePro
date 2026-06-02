@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { CheckCircle, Copy, RefreshCw, Shield, Zap, Clock } from 'lucide-react';
 
@@ -60,8 +61,11 @@ const PLANOS: PlanoConfig[] = [
 
 // ─── Componente Principal ─────────────────────────────────────────────────────
 export default function CheckoutPage() {
+  const searchParams = useSearchParams();
+  const planoParam   = (searchParams.get('plano') || 'pro') as Plano;
+
   const [userId,       setUserId]       = useState<string | null>(null);
-  const [planoSel,    setPlanoSel]     = useState<Plano>('pro');
+  const [planoSel,    setPlanoSel]     = useState<Plano>(planoParam);
   const [loading,     setLoading]      = useState(false);
   const [checkout,    setCheckout]     = useState<CheckoutData | null>(null);
   const [copiado,     setCopiado]      = useState(false);

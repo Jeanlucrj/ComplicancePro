@@ -13,12 +13,12 @@ const PLANOS = {
   pro: {
     nome: 'Acesso Pro – Base ANVISA',
     descricao: 'Monitoramento de cosméticos e medicamentos, alertas semanais e consultas ilimitadas.',
-    valor_centavos: 4990, // R$ 49,90
+    valor_centavos: 14700, // R$ 147,00
   },
   enterprise: {
     nome: 'Acesso Enterprise – Base ANVISA',
     descricao: 'Tudo do Pro + múltiplos usuários, API access e suporte prioritário.',
-    valor_centavos: 14990, // R$ 149,90
+    valor_centavos: 49700, // R$ 497,00
   },
 } as const;
 
