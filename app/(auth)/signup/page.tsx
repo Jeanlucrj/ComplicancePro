@@ -162,7 +162,7 @@ export default function SignupPage() {
           Comece agora mesmo
         </h2>
         <p className="mt-3 text-center text-lg text-slate-600 dark:text-slate-400">
-          Crie sua conta e tenha 14 dias de teste gratuito
+          Crie sua conta e assine via Pix para ter acesso completo
         </p>
       </div>
 
@@ -399,7 +399,7 @@ export default function SignupPage() {
             <div className="bg-blue-50/50 dark:bg-blue-900/10 p-6 rounded-3xl border border-blue-100/50 dark:border-blue-900/20 space-y-3">
               <div className="flex items-center space-x-3 text-sm text-blue-800 dark:text-blue-300 font-medium">
                 <CheckCircle2 className="h-5 w-5 text-green-500" />
-                <span>Acesso ilimitado ao dashboard por 14 dias</span>
+                <span>Acesso completo ao dashboard após assinatura</span>
               </div>
               <div className="flex items-center space-x-3 text-sm text-blue-800 dark:text-blue-300 font-medium">
                 <CheckCircle2 className="h-5 w-5 text-green-500" />
