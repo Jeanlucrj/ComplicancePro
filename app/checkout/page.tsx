@@ -361,15 +361,21 @@ function CheckoutContent() {
 
                     <p className="text-xs text-slate-500 text-center">Abra o app do banco → Pix → Copia e Cola ou QR Code. Acesso liberado automaticamente.</p>
 
-                    {/* Botão de teste — só aparece em devMode (chave abc_dev_) */}
+                    {/* Botão de teste — só aparece em devMode */}
                     {checkout.chargeId && (
                       <button
                         onClick={async () => {
-                          await fetch('/api/checkout/simulate', {
+                          const res = await fetch('/api/checkout/simulate', {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ chargeId: checkout.chargeId }),
+                            body: JSON.stringify({ chargeId: checkout.chargeId, userId }),
                           });
+                          const data = await res.json();
+                          if (data.pago) {
+                            setPago(true);
+                            setEtapa('sucesso');
+                            setTimeout(() => { window.location.href = '/dashboard/perfil?novo=true'; }, 2500);
+                          }
                         }}
                         className="w-full py-2 bg-yellow-500/10 border border-yellow-500/30 text-yellow-400 hover:bg-yellow-500/20 text-xs font-semibold rounded-xl transition"
                       >
